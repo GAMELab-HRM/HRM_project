@@ -1,0 +1,3 @@
+把醫院給的資料夾放入
+執行data.py 
+轉換好的csv file會放在train資料夾內
