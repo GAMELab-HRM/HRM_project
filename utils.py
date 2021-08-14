@@ -57,7 +57,7 @@ def draw(swallos):
 def create_csv(dataframe, swallow_index, filename, sensors):
     sensors.append('檢查流程')
     dataframe = dataframe[swallow_index[0]:swallow_index[len(swallow_index)-1]+1][sensors]
-    dataframe.to_csv(os.path.join('train',filename[13:]), encoding='big5')
+    dataframe.to_csv(os.path.join('train',filename[18:]), encoding='big5')
 
 def preprocess(filepath):
     sensors = [' P' + str(i) for i in range(1,23)] # 22個sensor p1~p22

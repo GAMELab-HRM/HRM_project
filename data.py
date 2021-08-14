@@ -7,9 +7,9 @@ if __name__ == "__main__":
         os.makedirs('train')
         print("[INFO] Create train folder")
 
-    res = glob.glob('./*/*.csv') # 遞迴抓取所有的csv file 
+    res = glob.glob('./data/*/*.csv') # 遞迴抓取所有的csv file 
     for fname in res:
         print(fname)
-        #print(fname[13:])
+        #print(fname[18:])
         preprocess(fname)
         
