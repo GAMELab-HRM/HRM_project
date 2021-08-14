@@ -28,32 +28,79 @@ def get_continous_cmap(hex_list, float_list=None):
     cmp = mccolors.LinearSegmentedColormap("my_cmp",segmentdata=cdict,N=256)
     return cmp 
 
-def draw(swallos):
-    # [swallos variable] contains 10 times swallow of patient
+# def draw(swallos):
+#     # [swallos variable] contains 10 times swallow of patient
+#     custom_cmap = get_continous_cmap(hex_list)
+#     for i in range(len(swallos)):
+#         data_number, sensor_number = swallos[i].shape
+#         y = [t for t in reversed(range(sensor_number))]
+#         x = [t for t in range(data_number)]
+#         values = []
+#         for j in y:
+#             temp = []
+#             for k in x:
+#                 temp.append(swallos[i][k][j])
+#             values.append(temp)
+#         values = np.array(values)
+#         fig, ax = plt.subplots()
+#         levels = np.linspace(-30, 280, 400) # pressure lower & upper bound
+#         contourf = ax.contourf(x,y,values,levels=levels,cmap=custom_cmap)
+#         cbar = fig.colorbar(contourf)
+#         plt.ylabel("sensor")
+#         plt.xlabel("sample number")
+#         plt.yticks([])
+#         plt.title("Swallow " + str(i+1))
+#         plt.show()
+#     return 0 
+def draw(filename):
+    df = pd.read_csv(filename, encoding='big5')
+    sensors = [' P' + str(i) for i in range(1,23)] # 22個sensor p1~p22
+    swallows = []
+    swallow_range = []
+    ans = list(np.where(df['檢查流程']!='None')[0]) # 找出有檢測發生的index
+    #print(len(ans))
+    swallow_index = []
+    for i in range(len(ans)):
+        test_name = df.iloc[ans[i]]['檢查流程'] # test_name ==> 檢測的名稱
+        if 'Wet swallow10' in test_name:
+            swallow_index.append(ans[i])
+            swallow_index.append(ans[i+1])
+            continue 
+        if 'Wet swallow' in test_name:
+            swallow_index.append(ans[i])
+    #print(df.iloc[swallow_index])
+    for i in range(len(swallow_index)-1):
+        swallow_range.append([swallow_index[i],swallow_index[i+1]-1])
+
+    for i in range(10):
+        swallow_data = df[swallow_range[i][0]:swallow_range[i][1]+1][sensors]
+        swallows.append(swallow_data.values)
+
+    # draw 10 swallos in one figure 
     custom_cmap = get_continous_cmap(hex_list)
-    for i in range(len(swallos)):
-        data_number, sensor_number = swallos[i].shape
+
+    show_data = []
+    for i in range(len(swallows)):
+        data_number, sensor_number = swallows[i].shape
         y = [t for t in reversed(range(sensor_number))]
         x = [t for t in range(data_number)]
         values = []
         for j in y:
             temp = []
             for k in x:
-                temp.append(swallos[i][k][j])
+                temp.append(swallows[i][k][j])
             values.append(temp)
         values = np.array(values)
-        fig, ax = plt.subplots()
-        levels = np.linspace(-30, 280, 400) # pressure lower & upper bound
-        contourf = ax.contourf(x,y,values,levels=levels,cmap=custom_cmap)
-        cbar = fig.colorbar(contourf)
-        plt.ylabel("sensor")
-        plt.xlabel("sample number")
-        plt.yticks([])
-        plt.title("Swallow " + str(i+1))
-        plt.show()
+        show_data.append({"x":x, "y":y, "values":values})
         
-
-    return 0 
+    # draw 10 swallows in one figure 
+    fig = plt.figure(figsize=(10,10))
+    for i in range(10):
+        fig.add_subplot(2, 5, i+1)
+        levels = np.linspace(-30, 280, 400) # pressure lower & upper bound
+        plt.contourf(show_data[i]['x'],show_data[i]['y'],show_data[i]['values'],levels=levels,cmap=custom_cmap)
+        plt.title('swallow'+str(i+1))
+    plt.show()
 def create_csv(dataframe, swallow_index, filename, sensors):
     sensors.append('檢查流程')
     dataframe = dataframe[swallow_index[0]:swallow_index[len(swallow_index)-1]+1][sensors]
@@ -66,9 +113,9 @@ def preprocess(filepath):
     swallows = [] # 存放這個病患的10次 wet swallow
 
     df = pd.read_csv(filename, encoding= 'big5', skiprows=6)
-    df['檢查流程'] = df['檢查流程'].fillna(0) # csv檔空格通通填0
+    df['檢查流程'] = df['檢查流程'].fillna('None') # csv檔空格通通填0
 
-    ans = list(np.where(df['檢查流程']!=0)[0]) # 找出有檢測發生的index
+    ans = list(np.where(df['檢查流程']!='None')[0]) # 找出有檢測發生的index
     swallow_index = []
     for i in range(len(ans)):
         test_name = df.iloc[ans[i]]['檢查流程'] # test_name ==> 檢測的名稱
