@@ -5,7 +5,7 @@ import glob
 
 
 if __name__ == "__main__":
-    res = glob.glob('./train/*.csv')
+    res = glob.glob('./train/*.CSV')
     for r in res:
         draw(r)
 
