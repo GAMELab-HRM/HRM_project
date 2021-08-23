@@ -27,34 +27,29 @@ def get_continous_cmap(hex_list, float_list=None):
         cdict[col] = col_list
     cmp = mccolors.LinearSegmentedColormap("my_cmp",segmentdata=cdict,N=256)
     return cmp 
+def draw_all(df, filename, sensors):
+    custom_cmap = get_continous_cmap(hex_list)
+    levels = np.linspace(-15, 150, 400)
 
-# def draw(swallos):
-#     # [swallos variable] contains 10 times swallow of patient
-#     custom_cmap = get_continous_cmap(hex_list)
-#     for i in range(len(swallos)):
-#         data_number, sensor_number = swallos[i].shape
-#         y = [t for t in reversed(range(sensor_number))]
-#         x = [t for t in range(data_number)]
-#         values = []
-#         for j in y:
-#             temp = []
-#             for k in x:
-#                 temp.append(swallos[i][k][j])
-#             values.append(temp)
-#         values = np.array(values)
-#         fig, ax = plt.subplots()
-#         levels = np.linspace(-30, 280, 400) # pressure lower & upper bound
-#         contourf = ax.contourf(x,y,values,levels=levels,cmap=custom_cmap)
-#         cbar = fig.colorbar(contourf)
-#         plt.ylabel("sensor")
-#         plt.xlabel("sample number")
-#         plt.yticks([])
-#         plt.title("Swallow " + str(i+1))
-#         plt.show()
-#     return 0 
-def draw(filename):
+    hrm = df[:][sensors].values 
+
+    data_number, sensor_number = hrm.shape 
+    y = [t for t in reversed(range(sensor_number))]
+    x = [t for t in range(data_number)]
+    values = []
+    for j in y:
+        temp = []
+        for k in x:
+            temp.append(hrm[k][j])
+        values.append(temp)
+    values = np.array(values)
+    plt.contourf(x,y,values,levels=levels,cmap=custom_cmap)
+    plt.yticks([])
+    plt.colorbar()
+    plt.show()
+def draw_wet_swallows(filename):
     df = pd.read_csv(filename, encoding='big5')
-    sensors = [' P' + str(i) for i in range(1,23)] # 22個sensor p1~p22
+    sensors = [' P' + str(i) for i in range(1,21)] # 22個sensor p1~p22
     swallows = []
     swallow_range = []
     ans = list(np.where(df['檢查流程']!='None')[0]) # 找出有檢測發生的index
@@ -94,20 +89,26 @@ def draw(filename):
         show_data.append({"x":x, "y":y, "values":values})
         
     # draw 10 swallows in one figure 
-    fig = plt.figure(figsize=(10,10))
+    fig = plt.figure(figsize=(15,15))
     for i in range(10):
         fig.add_subplot(2, 5, i+1)
-        levels = np.linspace(-30, 280, 400) # pressure lower & upper bound
+        levels = np.linspace(-15, 150, 400) # pressure lower & upper bound
+        plt.suptitle(filename)
+        #a.contourf(show_data[i]['x'],show_data[i]['y'],show_data[i]['values'],levels=levels,cmap=custom_cmap)
         plt.contourf(show_data[i]['x'],show_data[i]['y'],show_data[i]['values'],levels=levels,cmap=custom_cmap)
+        plt.colorbar()
+        plt.yticks([])
         plt.title('swallow'+str(i+1))
+    # save figure 
     plt.show()
+
 def create_csv(dataframe, swallow_index, filename, sensors):
     sensors.append('檢查流程')
     dataframe = dataframe[swallow_index[0]:swallow_index[len(swallow_index)-1]+1][sensors]
     dataframe.to_csv(os.path.join('train',filename[18:]), encoding='big5')
 
 def preprocess(filepath):
-    sensors = [' P' + str(i) for i in range(1,23)] # 22個sensor p1~p22
+    sensors = [' P' + str(i) for i in range(1,21)] # 22個sensor p1~p22
     filename = filepath
     swallow_range = []
     swallows = [] # 存放這個病患的10次 wet swallow
@@ -125,17 +126,20 @@ def preprocess(filepath):
             continue 
         if 'Wet swallow' in test_name:
             swallow_index.append(ans[i])
+    #print(df.iloc[swallow_index])
+    min_bound = -15 
+    max_bound = 150 
+    for s in sensors:
+        df.loc[df[s] > max_bound, s] = max_bound
+        df.loc[df[s] < min_bound, s] = min_bound
+        #print(s+":\t ","Max:\t",df[s].max(),"\tMin:\t",df[s].min())
+    
+    # draw all 
+    #draw_all(df, filename, sensors)
 
-    for i in range(len(swallow_index)-1):
-        swallow_range.append([swallow_index[i],swallow_index[i+1]-1])
-
-    for i in range(10):
-        swallow_data = df[swallow_range[i][0]:swallow_range[i][1]+1][sensors]
-        swallows.append(swallow_data.values)
     # 建立新格式的csv file(去除一些沒用的資訊)
     create_csv(df, swallow_index, filename, sensors)
     
-
 # 將指定檔案的10次swallow轉換成np.array
 def get_wet_swallow(filename):
     pass 
