@@ -2,7 +2,7 @@ import argparse
 import pandas as pd
 import glob
 import os
-from utils import draw_wet_swallows
+from utils import draw_all
 
 
 def get_parser():
@@ -76,8 +76,11 @@ def output(df_lst, name_lst):
 def draw():
     res = glob.glob('./data argumentation/*.csv')
     for r in res:
+        df = pd.read_csv(r, encoding='big5')
+        sensors = [' P' + str(i) for i in range(1,21)] # 22個sensor p1~p22
         print(r)
-        draw_wet_swallows(r)
+        draw_all(df, r, sensors)
+        #draw_wet_swallows(r)
 
 
 
@@ -92,7 +95,7 @@ if __name__ == '__main__':
     argumentation_df_lst = data_argumentation(path_lst, times, stride)
     name_lst = [i.split('\\')[-1] for i in path_lst]
     output(argumentation_df_lst, name_lst)
-    # draw()
+    draw()
     
         
 

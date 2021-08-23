@@ -46,6 +46,7 @@ def draw_all(df, filename, sensors):
     plt.contourf(x,y,values,levels=levels,cmap=custom_cmap)
     plt.yticks([])
     plt.colorbar()
+    plt.title(filename)
     plt.show()
 def draw_wet_swallows(filename):
     df = pd.read_csv(filename, encoding='big5')
