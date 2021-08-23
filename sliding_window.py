@@ -2,6 +2,7 @@ import argparse
 import pandas as pd
 import glob
 import os
+from utils import draw_wet_swallows
 
 
 def get_parser():
@@ -31,10 +32,10 @@ def data_transfer(path):
     remain_col.append('檢查流程')
 
     df = pd.read_csv(path, encoding= 'big5', skiprows=6, low_memory=False)
-    df['檢查流程'].fillna(0, inplace=True)
+    df['檢查流程'].fillna('None', inplace=True)
     wet_swallow_10_idx = df.loc[df['檢查流程']=='Wet swallow10'].index.tolist()[0]
     temp_df = df.loc[wet_swallow_10_idx+1:, '檢查流程']
-    next_test_idx = temp_df[temp_df != 0].index.tolist()[0]
+    next_test_idx = temp_df[temp_df != 'None'].index.tolist()[0]
     df = df.loc[:next_test_idx, remain_col]
 
     return df
@@ -52,7 +53,7 @@ def data_argumentation(path_lst, times, stride):
             end_idx -= stride
             temp.append(df.iloc[start_idx:end_idx, :])
         argumentation_df_lst.append(temp)
-
+    
     return argumentation_df_lst
 
 
@@ -70,6 +71,16 @@ def output(df_lst, name_lst):
             df_lst[i][j].to_csv(os.path.join('data argumentation', file_name), encoding='big5')
             print("[INFO] output {} successfully".format(file_name))
 
+
+
+def draw():
+    res = glob.glob('./data argumentation/*.csv')
+    for r in res:
+        print(r)
+        draw_wet_swallows(r)
+
+
+
 if __name__ == '__main__':
     parser = get_parser()
     args = parser.parse_args()
@@ -81,6 +92,7 @@ if __name__ == '__main__':
     argumentation_df_lst = data_argumentation(path_lst, times, stride)
     name_lst = [i.split('\\')[-1] for i in path_lst]
     output(argumentation_df_lst, name_lst)
+    # draw()
     
         
 
