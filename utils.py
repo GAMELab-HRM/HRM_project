@@ -112,7 +112,7 @@ def preprocess(filepath):
     filename = filepath
     swallow_range = []
     swallows = [] # 存放這個病患的10次 wet swallow
-
+    swallow_names = ["Wet swallow"+str(i+1) for i in range(10)]
     df = pd.read_csv(filename, encoding= 'big5', skiprows=6)
     df['檢查流程'] = df['檢查流程'].fillna('None') # csv檔空格通通填0
 
@@ -120,12 +120,16 @@ def preprocess(filepath):
     swallow_index = []
     for i in range(len(ans)):
         test_name = df.iloc[ans[i]]['檢查流程'] # test_name ==> 檢測的名稱
-        if 'Wet swallow10' in test_name:
+
+        if 'Wet swallow10' == test_name:
             swallow_index.append(ans[i])
             swallow_index.append(ans[i+1])
             continue 
-        if 'Wet swallow' in test_name:
+        if test_name in swallow_names:
             swallow_index.append(ans[i])
+        # if 'Wet swallow' in test_name:
+        #     swallow_index.append(ans[i])
+        
     #print(df.iloc[swallow_index])
     min_bound = -15 
     max_bound = 150 
@@ -134,8 +138,6 @@ def preprocess(filepath):
         df.loc[df[s] < min_bound, s] = min_bound
         #print(s+":\t ","Max:\t",df[s].max(),"\tMin:\t",df[s].min())
     
-    # draw all 
-    #draw_all(df, filename, sensors)
 
     # 建立新格式的csv file(去除一些沒用的資訊)
     create_csv(df, swallow_index, filename, sensors)
