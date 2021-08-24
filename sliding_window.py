@@ -58,9 +58,9 @@ def data_argumentation(path_lst, times, stride):
 
 
 def output(df_lst, name_lst):
-    if not os.path.exists('data argumentation'):
-        os.makedirs('data argumentation')
-        print("[INFO] Create data argumentation folder")
+    if not os.path.exists('data augmentation'):
+        os.makedirs('data augmentation')
+        print("[INFO] Create data augmentation folder")
 
     for i in range(len(df_lst)):
         for j in range(len(df_lst[i])):
@@ -68,13 +68,13 @@ def output(df_lst, name_lst):
             file_name[0] += '_arg'+str(j)
             file_name = '.'.join(file_name)
             
-            df_lst[i][j].to_csv(os.path.join('data argumentation', file_name), encoding='big5')
+            df_lst[i][j].to_csv(os.path.join('data augmentation', file_name), encoding='big5')
             print("[INFO] output {} successfully".format(file_name))
 
 
 
 def draw():
-    res = glob.glob('./data argumentation/*.csv')
+    res = glob.glob('./data augmentation/*.csv')
     for r in res:
         df = pd.read_csv(r, encoding='big5')
         sensors = [' P' + str(i) for i in range(1,21)] # 22個sensor p1~p22
