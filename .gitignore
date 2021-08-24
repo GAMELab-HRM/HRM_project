@@ -1,4 +1,5 @@
 data/    
 train/
 __pycache__/    
-data argumentation/
+data augmentation/
+data augmentation2/
