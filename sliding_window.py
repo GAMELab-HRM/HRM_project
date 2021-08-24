@@ -82,6 +82,7 @@ def draw():
 
 
 if __name__ == '__main__':
+    """
     parser = get_parser()
     args = parser.parse_args()
     times = args.times
@@ -92,7 +93,8 @@ if __name__ == '__main__':
     argumentation_df_lst = data_argumentation(path_lst, times, stride)
     name_lst = [i.split('\\')[-1] for i in path_lst]
     output(argumentation_df_lst, name_lst)
-    # draw()
+    """
+    draw()
     
         
 
