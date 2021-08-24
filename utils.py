@@ -46,6 +46,7 @@ def draw_all(df, filename, sensors):
     plt.contourf(x,y,values,levels=levels,cmap=custom_cmap)
     plt.yticks([])
     plt.colorbar()
+    plt.title(filename)
     plt.show()
 def draw_wet_swallows(filename):
     df = pd.read_csv(filename, encoding='big5')
@@ -104,6 +105,8 @@ def draw_wet_swallows(filename):
 
 def create_csv(dataframe, swallow_index, filename, sensors):
     sensors.append('檢查流程')
+    sensors.append('Contraction vigor')
+    sensors.append('Contraction pattern')
     dataframe = dataframe[swallow_index[0]:swallow_index[len(swallow_index)-1]+1][sensors]
     dataframe.to_csv(os.path.join('train',filename[18:]), encoding='big5')
 
@@ -115,7 +118,7 @@ def preprocess(filepath):
     swallow_names = ["Wet swallow"+str(i+1) for i in range(10)]
     df = pd.read_csv(filename, encoding= 'big5', skiprows=6)
     df['檢查流程'] = df['檢查流程'].fillna('None') # csv檔空格通通填0
-
+   
     ans = list(np.where(df['檢查流程']!='None')[0]) # 找出有檢測發生的index
     swallow_index = []
     for i in range(len(ans)):
@@ -129,7 +132,7 @@ def preprocess(filepath):
             swallow_index.append(ans[i])
         # if 'Wet swallow' in test_name:
         #     swallow_index.append(ans[i])
-        
+
     #print(df.iloc[swallow_index])
     min_bound = -15 
     max_bound = 150 
