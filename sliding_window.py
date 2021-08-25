@@ -64,12 +64,16 @@ def output(df_lst, name_lst):
 
     for i in range(len(df_lst)):
         for j in range(len(df_lst[i])):
-            file_name = name_lst[i].split('.')
-            file_name[0] += '_arg'+str(j)
-            file_name = '.'.join(file_name)
             
-            df_lst[i][j].to_csv(os.path.join('data augmentation', file_name), encoding='big5')
-            print("[INFO] output {} successfully".format(file_name))
+            temp = name_lst[i].split('-')
+            fname = temp[0]+'arg'+str(j)+'_'+temp[1]
+            # print(fname)
+            # file_name = name_lst[i].split('.')
+            # file_name[0] += '_arg'+str(j)
+            # file_name = '.'.join(file_name)
+            
+            df_lst[i][j].to_csv(os.path.join('data augmentation', fname), encoding='big5')
+            print("[INFO] output {} successfully".format(fname))
 
 
 
