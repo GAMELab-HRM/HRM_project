@@ -40,8 +40,8 @@ def data_transfer(path):
 
     return df
 
-def data_argumentation(path_lst, times, stride):
-    argumentation_df_lst = []
+def data_augmentation(path_lst, times, stride):
+    augmentation_df_lst = []
     for path in path_lst:
         df = data_transfer(path)
         start_idx = df.loc[df['檢查流程']=='Wet swallow1'].index.tolist()[0]
@@ -52,9 +52,9 @@ def data_argumentation(path_lst, times, stride):
             start_idx -= stride
             end_idx -= stride
             temp.append(df.iloc[start_idx:end_idx, :])
-        argumentation_df_lst.append(temp)
+        augmentation_df_lst.append(temp)
     
-    return argumentation_df_lst
+    return augmentation_df_lst
 
 
 def output(df_lst, name_lst):
@@ -85,6 +85,7 @@ def draw():
 
 
 if __name__ == '__main__':
+    
     parser = get_parser()
     args = parser.parse_args()
     times = args.times
@@ -92,9 +93,10 @@ if __name__ == '__main__':
 
     path_lst = glob.glob('./data/*/*.CSV')
     check_min_rest(path_lst, times, stride)
-    argumentation_df_lst = data_argumentation(path_lst, times, stride)
+    augmentation_df_lst = data_augmentation(path_lst, times, stride)
     name_lst = [i.split('\\')[-1] for i in path_lst]
-    output(argumentation_df_lst, name_lst)
+    output(augmentation_df_lst, name_lst)
+    
     draw()
     
         
