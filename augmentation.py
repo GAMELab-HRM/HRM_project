@@ -14,7 +14,7 @@ type_template = {
     "IEM":['Failed', 'Weak', 'Weak', 'Weak', 'Weak', 'Failed', 'Failed', 'Failed', 'Weak', 'Failed'],
     "absent":['Failed', 'Failed', 'Failed', 'Failed', 'Failed', 'Failed', 'Failed', 'Failed', 'Failed', 'Failed']
 }
-
+count = 0
 # parser 
 def get_parser():
     parser = argparse.ArgumentParser()
@@ -48,9 +48,10 @@ def get_swallow_range(df):
     return swallow_range, np.array(swallow_status)
 
 def create_data(label):
+    global count 
     datetime_dt = datetime.datetime.today()          # 獲得當地時間
     datetime_str = datetime_dt.strftime("%Y%m%d%H%M%S")  # 格式化日期
-    print("[INFO] Create "+datetime_str+'-'+label+'.CSV')
+    print("[INFO] Create "+datetime_str+str(count)+'-'+label+'.CSV')
 
     type_number = len(file_dict[label])
     df_list = []
@@ -59,7 +60,6 @@ def create_data(label):
     while i<10:
         file_randn = random.randint(0,type_number-1)
         fname = file_dict[label][file_randn]
-        
         
         target_stype = type_template[label][i] # Normal Failed Weak..... (swallow type )
         df = pd.read_csv(fname, encoding='big5')
@@ -73,13 +73,16 @@ def create_data(label):
         swallow_randn = random.randint(0, len(type_list)-1)
         target_swallow_index = type_list[swallow_randn]
         print('swallow'+str(i+1)+':\t'+"|From "+fname+"\t"+"swallow"+str(target_swallow_index+1)+"\t")
+      
         target_swallow = swallow_range[target_swallow_index]
         df_list.append(df.iloc[target_swallow[0]:target_swallow[1]+1])
         i+=1
 
 
     res = pd.concat(df_list)
-    res.to_csv(os.path.join('data augmentation2',datetime_str+'-'+label+'.csv'), encoding='big5')
+    res.to_csv(os.path.join('data augmentation2',datetime_str+str(count)+'-'+label+'.csv'), encoding='big5')
+    print(count)
+    count+=1
 def draw():
     res = glob.glob('./data augmentation2/*.csv')
     for r in res:
@@ -111,7 +114,7 @@ if __name__ == "__main__":
         print("\n")
 
     print("[INFO] Start drawing HRM curve")
-    draw()
+    #draw()
 
 
 
