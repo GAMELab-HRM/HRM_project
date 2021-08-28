@@ -54,6 +54,7 @@ def create_data(label):
     print("[INFO] Create "+datetime_str+str(count)+'-'+label+'.CSV')
 
     type_number = len(file_dict[label])
+    print('type number',type_number)
     df_list = []
     # 隨機挑選10次swallow
     i = 0
@@ -96,16 +97,16 @@ if __name__ == "__main__":
         os.makedirs('data augmentation2')
         print("[INFO] Create data augmentation2 folder")
 
-    res = glob.glob('./train/*.csv')
+    res = glob.glob('./train/*.CSV')
     parser = get_parser()
     args = parser.parse_args()
     number = args.number
-
+    
     for r in res:
         file_label = r.split('-')[1][:-4]
         file_dict[file_label].append(r)
         read_data(r, file_label)
-
+    
     # Create fake HRM data 
     for i in range(number):
         create_data('normal')
