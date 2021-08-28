@@ -3,3 +3,7 @@ train/
 __pycache__/    
 data augmentation/
 data augmentation2/
+vigor_model/data/
+vigor_model/data augmentation/
+vigor_model/original_data/
+vigor_model/training_data/
