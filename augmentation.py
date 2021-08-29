@@ -103,6 +103,7 @@ if __name__ == "__main__":
     number = args.number
     
     for r in res:
+        print(r)
         file_label = r.split('-')[1][:-4]
         file_dict[file_label].append(r)
         read_data(r, file_label)
