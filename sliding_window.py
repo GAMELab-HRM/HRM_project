@@ -31,7 +31,7 @@ def data_transfer(path):
     remain_col = [' P' + str(i) for i in range(1,21)]
     remain_col.append('檢查流程')
 
-    df = pd.read_csv(path, encoding= 'big5', skiprows=6, low_memory=False)
+    df = pd.read_csv(path, encoding='big5', skiprows=6, low_memory=False)
     df['檢查流程'].fillna('None', inplace=True)
     wet_swallow_10_idx = df.loc[df['檢查流程']=='Wet swallow10'].index.tolist()[0]
     temp_df = df.loc[wet_swallow_10_idx+1:, '檢查流程']
@@ -66,7 +66,7 @@ def output(df_lst, name_lst):
         for j in range(len(df_lst[i])):
             
             temp = name_lst[i].split('-')
-            fname = temp[0]+'arg'+str(j)+'_'+temp[1]
+            fname = temp[0]+'aug'+str(j)+'_'+temp[1]
             # print(fname)
             # file_name = name_lst[i].split('.')
             # file_name[0] += '_arg'+str(j)
