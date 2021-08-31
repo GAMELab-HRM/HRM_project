@@ -66,6 +66,7 @@ def draw_wet_swallows(filename):
             continue 
         if 'Wet swallow' in test_name:
             swallow_index.append(ans[i])
+    
     #print(df.iloc[swallow_index])
     for i in range(len(swallow_index)-1):
         swallow_range.append([swallow_index[i],swallow_index[i+1]-1])
@@ -143,7 +144,6 @@ def preprocess(filepath, swallow_size):
 
     # 建立新格式的csv file(去除一些沒用的資訊)
     create_csv(df_list, filename)
-
     
 def compute_swallow_size(files):
     swallow_size = [[] for i in range(10)]
@@ -166,5 +166,6 @@ def compute_swallow_size(files):
         # 計算每個swallow的長度
         for i in range(len(swallow_index)-1):
             swallow_size[i].append(swallow_index[i+1] - swallow_index[i])
-
-    return [min(i) for i in swallow_size]
+    
+    retv  = [min(i) for i in swallow_size]
+    return [min(retv) for i in range(10)]

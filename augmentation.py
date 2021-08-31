@@ -81,11 +81,11 @@ def create_data(label):
 
 
     res = pd.concat(df_list)
-    res.to_csv(os.path.join('data augmentation2',datetime_str+str(count)+'-'+label+'.csv'), encoding='big5')
+    res.to_csv(os.path.join('augmentation2',datetime_str+str(count)+'-'+label+'.CSV'), encoding='big5')
     print(count)
     count+=1
 def draw():
-    res = glob.glob('./data augmentation2/*.csv')
+    res = glob.glob('./augmentation2/*.csv')
     for r in res:
         df = pd.read_csv(r, encoding='big5')
         sensors = [' P' + str(i) for i in range(1,21)] # 22個sensor p1~p22
@@ -93,9 +93,9 @@ def draw():
         draw_all(df, r, sensors)
 
 if __name__ == "__main__":
-    if not os.path.exists('data augmentation2'):
-        os.makedirs('data augmentation2')
-        print("[INFO] Create data augmentation2 folder")
+    if not os.path.exists('augmentation2'):
+        os.makedirs('augmentation2')
+        print("[INFO] Create augmentation2 folder")
 
     res = glob.glob('./train/*.CSV')
     parser = get_parser()
