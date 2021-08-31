@@ -38,7 +38,7 @@ def get_swallow_range(df):
         test_name = df.iloc[ans[i]]['檢查流程'] # test_name ==> 檢測的名稱
         if 'Wet swallow10' == test_name:
             swallow_index.append(ans[i])
-            swallow_index.append(ans[i+1])
+            swallow_index.append(len(df)-1)
             continue 
         if test_name in swallow_names:
             swallow_index.append(ans[i])

@@ -27,6 +27,7 @@ def get_continous_cmap(hex_list, float_list=None):
         cdict[col] = col_list
     cmp = mccolors.LinearSegmentedColormap("my_cmp",segmentdata=cdict,N=256)
     return cmp 
+
 def draw_all(df, filename, sensors):
     custom_cmap = get_continous_cmap(hex_list)
     levels = np.linspace(-15, 150, 400)
@@ -48,19 +49,20 @@ def draw_all(df, filename, sensors):
     plt.colorbar()
     plt.title(filename)
     plt.show()
+
 def draw_wet_swallows(filename):
     df = pd.read_csv(filename, encoding='big5')
     sensors = [' P' + str(i) for i in range(1,21)] # 22個sensor p1~p22
     swallows = []
     swallow_range = []
     ans = list(np.where(df['檢查流程']!='None')[0]) # 找出有檢測發生的index
-    #print(len(ans))
     swallow_index = []
+
     for i in range(len(ans)):
         test_name = df.iloc[ans[i]]['檢查流程'] # test_name ==> 檢測的名稱
         if 'Wet swallow10' in test_name:
             swallow_index.append(ans[i])
-            swallow_index.append(ans[i+1])
+            swallow_index.append(len(df)-1)
             continue 
         if 'Wet swallow' in test_name:
             swallow_index.append(ans[i])
@@ -95,56 +97,74 @@ def draw_wet_swallows(filename):
         fig.add_subplot(2, 5, i+1)
         levels = np.linspace(-15, 150, 400) # pressure lower & upper bound
         plt.suptitle(filename)
-        #a.contourf(show_data[i]['x'],show_data[i]['y'],show_data[i]['values'],levels=levels,cmap=custom_cmap)
         plt.contourf(show_data[i]['x'],show_data[i]['y'],show_data[i]['values'],levels=levels,cmap=custom_cmap)
         plt.colorbar()
         plt.yticks([])
         plt.title('swallow'+str(i+1))
-    # save figure 
     plt.show()
 
-def create_csv(dataframe, swallow_index, filename, sensors):
-    sensors.append('檢查流程')
-    sensors.append('Contraction vigor')
-    sensors.append('Contraction pattern')
-    dataframe = dataframe[swallow_index[0]:swallow_index[len(swallow_index)-1]+1][sensors]
-    dataframe.to_csv(os.path.join('train',filename[18:]), encoding='big5')
+def create_csv(df_list, filename):
+    res = pd.concat(df_list)
+    res.to_csv(os.path.join('train',filename[18:]), encoding='big5')
 
-def preprocess(filepath):
+def preprocess(filepath, swallow_size):
     sensors = [' P' + str(i) for i in range(1,21)] # 22個sensor p1~p22
     filename = filepath
-    swallow_range = []
-    swallows = [] # 存放這個病患的10次 wet swallow
     swallow_names = ["Wet swallow"+str(i+1) for i in range(10)]
     df = pd.read_csv(filename, encoding= 'big5', skiprows=6)
     df['檢查流程'] = df['檢查流程'].fillna('None') # csv檔空格通通填0
-   
     ans = list(np.where(df['檢查流程']!='None')[0]) # 找出有檢測發生的index
     swallow_index = []
+
     for i in range(len(ans)):
         test_name = df.iloc[ans[i]]['檢查流程'] # test_name ==> 檢測的名稱
-
         if 'Wet swallow10' == test_name:
             swallow_index.append(ans[i])
             swallow_index.append(ans[i+1])
             continue 
         if test_name in swallow_names:
             swallow_index.append(ans[i])
-        # if 'Wet swallow' in test_name:
-        #     swallow_index.append(ans[i])
 
-    #print(df.iloc[swallow_index])
     min_bound = -15 
     max_bound = 150 
     for s in sensors:
         df.loc[df[s] > max_bound, s] = max_bound
         df.loc[df[s] < min_bound, s] = min_bound
-        #print(s+":\t ","Max:\t",df[s].max(),"\tMin:\t",df[s].min())
-    
+
+    sensors.append('檢查流程')
+    sensors.append('Contraction vigor')
+    sensors.append('Contraction pattern')
+
+    df_list = []
+    for i in range(10):
+        s_size = swallow_index[i+1] - swallow_index[i]
+        temp = np.linspace(swallow_index[i], swallow_index[i+1] - 1, swallow_size[i], dtype='int')
+        df_list.append(df.iloc[temp][sensors])
 
     # 建立新格式的csv file(去除一些沒用的資訊)
-    create_csv(df, swallow_index, filename, sensors)
+    create_csv(df_list, filename)
+
     
-# 將指定檔案的10次swallow轉換成np.array
-def get_wet_swallow(filename):
-    pass 
+def compute_swallow_size(files):
+    swallow_size = [[] for i in range(10)]
+    swallow_names = ["Wet swallow"+str(i+1) for i in range(10)]
+
+    for f in files:
+        df = pd.read_csv(f, encoding= 'big5', skiprows=6)
+        df['檢查流程'] = df['檢查流程'].fillna('None') # csv檔空格通通填0
+        ans = list(np.where(df['檢查流程']!='None')[0]) # 找出有檢測發生的index
+        swallow_index = []
+        
+        for i in range(len(ans)):
+            test_name = df.iloc[ans[i]]['檢查流程'] # test_name ==> 檢測的名稱
+            if 'Wet swallow10' == test_name:
+                swallow_index.append(ans[i])
+                swallow_index.append(ans[i+1])
+                continue 
+            if test_name in swallow_names:
+                swallow_index.append(ans[i])
+        # 計算每個swallow的長度
+        for i in range(len(swallow_index)-1):
+            swallow_size[i].append(swallow_index[i+1] - swallow_index[i])
+
+    return [min(i) for i in swallow_size]
