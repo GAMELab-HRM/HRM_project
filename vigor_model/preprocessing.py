@@ -26,10 +26,15 @@ def mapping_Y_label(df, target_lst):
 def encode_data(df, **categorical_data):
     target_column = df['patient_type']
     LE = LabelEncoder()
+    df_lst = []
 
     for column, categorical in categorical_data.items():
         LE.fit(categorical)
-    df = df.loc[:, column.split(' ')].apply(lambda x : LE.transform(x))
+        temp_df = df.loc[:, column.split(' ')].apply(lambda x : LE.transform(x))
+        df_lst.append(temp_df)
+
+    
+    df = pd.concat(df_lst, axis=1)
     df['patient_type'] = target_column
     
     return df
@@ -38,10 +43,10 @@ def encode_data(df, **categorical_data):
 if __name__ == '__main__':
     
     df = pd.read_csv('./data/all_patient.csv', encoding='big5', low_memory=False)
-    df = mapping_Y_label(df, ['normal'])
+    df = mapping_Y_label(df, ['IEM'])
     categorical_data={
         ' '.join(['v'+ str(x) for x in range(1, 11)]): ['Failed', 'Weak', 'Normal'], 
         ' '.join(['p'+ str(x) for x in range(1, 11)]): ['Failed', 'Fragmented', 'Premature', 'Intact', 'Normal']
     }
     df = encode_data(df, **categorical_data)
-    output('training data', 'training.csv', df)
+    output('training_data', 'training.csv', df)
