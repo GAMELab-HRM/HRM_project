@@ -1,7 +1,11 @@
 import argparse
 import glob
+from logging import exception
 from os import path
+from shlex import split
 import pandas as pd
+from tabula import read_pdf
+
 
 '''
 def get_parser():
@@ -49,6 +53,55 @@ def output(file_path, file_name, df):
     print("[INFO] output {} successfully".format(file_name))
 
 
+def get_DCI_IRP(path_lst):
+    DCI_lst = []
+    IRP_lst = []
+    exception_lst = ['T220351794', 'U121003125']
+    for path in path_lst:
+        print(path)
+        id = path.split("\\")[1]
+        if id in exception_lst:
+            df = read_pdf(path, guess=False, pages=1, stream=True, encoding="utf-8")[0]
+            DCI = [x.split(" ")[1] for x in df.iloc[36:46, 0].tolist()]
+
+            df = read_pdf(path, guess=False, pages=2,stream=True, encoding="utf-8")[0]
+            if id == 'T220351794':
+                magic_num = df.iloc[4, 1]
+                temp = df.iloc[2:12, 2].tolist()
+                IRP_2 = [x.split(" ")[0] for x in temp if len(x) > 3 ]
+                IRP_2.insert(2, magic_num)
+
+                temp = df.iloc[2:12, 2].tolist()
+                IRP_8 = [x.split(" ")[1] if len(x) > 3 else x for x in temp]
+            
+            else:
+                pass
+
+        elif id == 'U120483683':
+            df = read_pdf(path, guess=False, pages=1,stream=True, encoding="utf-8")[0]
+            DCI = [x.split(" ")[1] for x in df.iloc[48:58, 0].tolist()]
+            print(DCI)
+        else:
+            df = read_pdf(path, guess=False, pages=2, stream=True, encoding="utf-8")[0]
+            DCI = [x.split(" ")[1] for x in df.iloc[4:14, 0].tolist()]
+
+            print(DCI)
+
+            IRP_2 = df.iloc[20:30, 2].tolist()
+            IRP_8 = df.iloc[20:30, 3].tolist()
+            IRP_4 = [x.split(" ")[0] for x in df.iloc[37:47, 3].tolist()]
+
+            print(IRP_2)
+            print(IRP_8)
+            print(IRP_4)
+
+
+        DCI_lst.append(DCI)
+        IRP_lst.append([IRP_2, IRP_8, IRP_4])
+
+    return DCI_lst, IRP_lst
+
+
 if __name__ == '__main__':
     
     # parser = get_parser()
@@ -56,10 +109,12 @@ if __name__ == '__main__':
     # times = args.times
     # stride = args.stride
 
-    path_lst = glob.glob('./original_data/*/*.CSV')
-    df = get_contraction_vigor(path_lst, if_pattern=True)
-    output('data', 'all_patient.csv', df)
+    #path_lst = glob.glob('./original_data/*/*.CSV')
+    #df = get_contraction_vigor(path_lst, if_pattern=True)
+    #output('data', 'all_patient.csv', df)
 
+    pdf_path_lst = glob.glob('./test/*/*.pdf')
+    get_DCI_IRP(pdf_path_lst)
 
 
 
