@@ -3,7 +3,6 @@ from torch.nn.modules.activation import ReLU
 import torch.nn as nn 
 from torch.autograd import Variable
 
-
 class VAE(nn.Module):
     def __init__(self, input_channels,):
         super(VAE, self).__init__()
@@ -32,9 +31,18 @@ class VAE(nn.Module):
     
     def bottleneck(self, h):
         mean, variance = self.fc1(h), self.fc2(h)
-        z = self.reparameterize(mean, variance)
+        z = self.reparameterize(mean, variance) # z = u + exp(std) * e 
         return z, mean, variance  
-    
+
+    def encode(self, x):
+        h = self.encoder(x) # h = encoder output
+        z, mean, variance = self.bottleneck(h) # compute z 
+        return z, mean, variance
+
+    def decode(self, x):
+        pass 
+
     def forward(self, x):
-        return self.encoder(x)
+        z, mean, variance = self.encode(x)
+        return z, mean, variance
     
