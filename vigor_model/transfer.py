@@ -31,7 +31,18 @@ def get_contraction(path_lst, if_pattern):
         df['Contraction pattern'].fillna(0, inplace=True)
         pattern = df.loc[df['Contraction pattern'] != 0]['Contraction pattern'].tolist()[:10]
         
+        '''
+        print(path)
+        print(df['Contraction vigor'].unique())
+        print(vigor)
+        print(df['Contraction pattern'].unique())
+        print(pattern)
 
+
+        print("--------------------------")
+        '''
+        
+        
         for i in range(len(vigor)):
             vigor[i] = vigor[i].strip()
             pattern[i] = pattern[i].strip()
@@ -43,7 +54,11 @@ def get_contraction(path_lst, if_pattern):
     if if_pattern:
         df.loc[:, ['p'+str(i) for i in range(1, 11)]]=pattern_lst
 
+        #exit(0)
+
     df['patient_type'] = patient_type_lst
+    path_lst = [x.split("\\")[1] for x in path_lst]
+    df.insert(0, 'ID', path_lst)
 
     return df
 
@@ -126,8 +141,13 @@ if __name__ == '__main__':
     # times = args.times
     # stride = args.stride
 
+
+
     path_lst = glob.glob('./original_data/*/*.CSV')
+    
+    
     contraction_df = get_contraction(path_lst, if_pattern=True)
+    
     target = contraction_df['patient_type']
     contraction_df.drop('patient_type', axis=1, inplace=True)
 
@@ -139,4 +159,5 @@ if __name__ == '__main__':
     print(df)
 
     output('data', 'all_patient.csv', df)
+    
 

@@ -14,13 +14,13 @@ def validation(N, df, model):
         'roc and auc': make_scorer(roc_auc_score),
         'f1': make_scorer(f1_score)
     }
-    x_data = df.iloc[:,:-1]
+    x_data = df.iloc[:,1:-1]
     y_data = df.iloc[:,-1]
     print(x_data.shape)
     clf = make_pipeline(MinMaxScaler(), model)
     results = cross_validate(
         estimator=clf,
-        X=df.iloc[:, :-1],
+        X=df.iloc[:, 1:-1],
         y=df.iloc[:, -1],
         cv=kf,
         scoring=scoring
