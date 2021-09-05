@@ -168,4 +168,5 @@ def compute_swallow_size(files):
             swallow_size[i].append(swallow_index[i+1] - swallow_index[i])
     
     retv  = [min(i) for i in swallow_size]
+    print(min(retv))
     return [min(retv) for i in range(10)]
