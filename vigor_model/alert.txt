@@ -1,6 +1,7 @@
 [csv Column英文拼錯]
 A103231375(Contraction vigor)
 T221040503(Contraction vigor)
+U121005290 csv 檔名 absent拼錯
 
 [Contraction pattern 標記錯誤]
 L220518569   8569-normal    wetswallow8    Intacct
