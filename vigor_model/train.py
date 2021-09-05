@@ -20,7 +20,7 @@ def validation(N, df, model):
     clf = make_pipeline(MinMaxScaler(), model)
     results = cross_validate(
         estimator=clf,
-        X=df.iloc[:, :-1],
+        X=df.iloc[:, 1:-1],
         y=df.iloc[:, -1],
         cv=kf,
         scoring=scoring
