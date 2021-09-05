@@ -12,10 +12,10 @@ def validation(N, df, model):
         'roc and auc': make_scorer(roc_auc_score),
         'f1': make_scorer(f1_score)
     }
-    
+    print(df)
     results = cross_validate(
         estimator=model,
-        X=df.iloc[:, :-1],
+        X=df.iloc[:, 1:-1],
         y=df.iloc[:, -1],
         cv=kf,
         scoring=scoring
