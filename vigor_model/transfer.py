@@ -1,4 +1,4 @@
-import argparse
+import os
 import glob
 from logging import exception
 from os import path
@@ -64,6 +64,10 @@ def get_contraction(path_lst, if_pattern):
 
 
 def output(file_path, file_name, df):       
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+        print("[INFO] Create {} folder".format(file_path))
+    
     df.to_csv(path.join(file_path, file_name), encoding='big5', index=False)
     print("[INFO] output {} successfully".format(file_name))
 
