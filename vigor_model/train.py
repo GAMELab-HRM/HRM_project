@@ -3,6 +3,8 @@ from model import SVM_1
 import pandas as pd
 from sklearn.model_selection import KFold, cross_validate
 from sklearn.metrics import make_scorer, recall_score, roc_auc_score, f1_score, accuracy_score
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.pipeline import make_pipeline
 
 def validation(N, df, model):
     kf = KFold(n_splits=N, random_state=100, shuffle=True)
@@ -12,10 +14,13 @@ def validation(N, df, model):
         'roc and auc': make_scorer(roc_auc_score),
         'f1': make_scorer(f1_score)
     }
-    print(df)
+    x_data = df.iloc[:,1:-1]
+    y_data = df.iloc[:,-1]
+    print(x_data.shape)
+    clf = make_pipeline(MinMaxScaler(), model)
     results = cross_validate(
-        estimator=model,
-        X=df.iloc[:, 1:-1],
+        estimator=clf,
+        X=df.iloc[:, :-1],
         y=df.iloc[:, -1],
         cv=kf,
         scoring=scoring
