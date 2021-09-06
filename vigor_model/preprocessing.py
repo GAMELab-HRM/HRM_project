@@ -56,12 +56,19 @@ def process_DCI_IRP(df):
     df.insert(0, 'ID', id_column)
 
     return df
-
+def one_hot_encoding(df):
+    col = ['v'+str(i+1) for i in range(10)] + ['p'+str(i+1) for i in range(10)]
+    df2 = pd.get_dummies(df,columns=col,prefix=col)
+    label = df2['patient_type']
+    df2 =  df2.drop(['patient_type'],axis=1)
+    df2 = pd.concat([df2,label],axis=1)
+    return df2
+    #df2.to_csv('./training_data/onehot.csv',encoding='big5',index=False)
 
 if __name__ == '__main__':
     
     df = pd.read_csv('./data/all_patient.csv', encoding='big5', low_memory=False)
-    df = mapping_Y_label(df, ['IEM'])
+    df = mapping_Y_label(df, ['normal'])
     categorical_data={
         # 因為list不能當key，所以先做成字串，放入encode_data之後再轉回list
         ' '.join(['v'+ str(x) for x in range(1, 11)]): ['Failed', 'Weak', 'Normal'], 
@@ -70,4 +77,5 @@ if __name__ == '__main__':
     df = encode_data(df, **categorical_data)
 
     df = process_DCI_IRP(df)
+    df = one_hot_encoding(df)
     output('training_data', 'training.csv', df)
