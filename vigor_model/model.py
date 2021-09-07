@@ -7,6 +7,7 @@ from torch.nn.modules.activation import ReLU
 from torch.utils.data.dataset import Dataset
 from torch.utils.data import DataLoader
 from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 from torchsummaryX import summary
 
 def read_csv_data(path):
@@ -44,8 +45,10 @@ class HRMdataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-
+def RFclassifier():
+    classifier = RandomForestClassifier(n_estimators=100)
+    return classifier 
+    
 def SVM_1():
     classifier = SVC(C=5, cache_size=5000, max_iter=200, degree=5, gamma='auto')
     return classifier
-
