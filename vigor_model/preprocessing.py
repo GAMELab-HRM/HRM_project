@@ -57,9 +57,9 @@ def process_DCI_IRP(df):
 if __name__ == '__main__':
     
     df = pd.read_csv('./data/all_patient.csv', encoding='big5', low_memory=False)
-    df = mapping_Y_label(df, ['IEM'])
+    df = mapping_Y_label(df, ['normal'])
     categorical_data={
-        # 因為list不能當key，所以先做成字串，放入encode_data之後再轉回list
+        # 因為list不能當key，所以先做成字串，放入encode_data()之後再轉回list
         ' '.join(['v'+ str(x) for x in range(1, 11)]): ['Failed', 'Weak', 'Normal'], 
         ' '.join(['p'+ str(x) for x in range(1, 11)]): ['Failed', 'Fragmented', 'Premature', 'Intact', 'Normal']
     }

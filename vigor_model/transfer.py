@@ -17,7 +17,7 @@ def get_parser():
 '''
 
 
-def get_contraction(path_lst, if_pattern):
+def get_contraction_vigor(path_lst, if_pattern):
     vigor_lst = []
     pattern_lst = []
     patient_type_lst = []
@@ -44,7 +44,7 @@ def get_contraction(path_lst, if_pattern):
         df.loc[:, ['p'+str(i) for i in range(1, 11)]]=pattern_lst
 
     df['patient_type'] = patient_type_lst
-
+    print(df)
     return df
 
 
@@ -107,16 +107,7 @@ def get_DCI_IRP(path_lst):
         DCI_lst.append(DCI)
         IRP_lst.append([IRP_02, IRP_08, IRP_40])
 
-    DCI_df = pd.DataFrame(DCI_lst, columns=['DCI_'+str(i) for i in range(1, 11)])
-    df_lst = [DCI_df]
-    IRP_times_lst = ['02', '08', '40']
-    for i in range(len(IRP_times_lst)):
-        IRP_df = pd.DataFrame([k[i] for k in IRP_lst], columns=['IRP'+IRP_times_lst[i]+'_'+str(x) for x in range(1, 11)])
-        df_lst.append(IRP_df)
-
-    DCI_IRP_df = pd.concat(df_lst, axis=1)
-
-    return DCI_IRP_df
+    df = pd.DataFrame()
 
 
 if __name__ == '__main__':
@@ -127,16 +118,24 @@ if __name__ == '__main__':
     # stride = args.stride
 
     path_lst = glob.glob('./original_data/*/*.CSV')
-    contraction_df = get_contraction(path_lst, if_pattern=True)
-    target = contraction_df['patient_type']
-    contraction_df.drop('patient_type', axis=1, inplace=True)
+    df = get_contraction_vigor(path_lst, if_pattern=True)
 
     pdf_path_lst = glob.glob('./original_data/*/*.pdf')
-    DCI_IRP_df = get_DCI_IRP(pdf_path_lst)
-
-    df = pd.concat([contraction_df, DCI_IRP_df], axis=1)
-    df['patient_type']=target
-    print(df)
+    get_DCI_IRP(pdf_path_lst)
 
     output('data', 'all_patient.csv', df)
 
+    
+    
+
+
+
+
+
+
+    #check_min_rest(path_lst, times, stride)
+    #augmentation_df_lst = data_augmentation(path_lst, times, stride)
+    #name_lst = [i.split('\\')[-1] for i in path_lst]
+    #output(augmentation_df_lst, name_lst)
+    
+    #draw()
