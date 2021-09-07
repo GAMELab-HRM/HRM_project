@@ -37,8 +37,6 @@ def get_contraction(path_lst, if_pattern):
         print(vigor)
         print(df['Contraction pattern'].unique())
         print(pattern)
-
-
         print("--------------------------")
         '''
         
@@ -163,5 +161,3 @@ if __name__ == '__main__':
     print(df)
 
     output('data', 'all_patient.csv', df)
-    
-
