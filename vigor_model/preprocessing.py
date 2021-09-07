@@ -28,7 +28,9 @@ def mapping_Y_label(df, target_lst):
 
 def encode_data(df, **categorical_data):
     target_column = df['patient_type']
-    DCI_IRP_df=df.loc[:, df.columns[21:-1]]
+    id_column = df['ID']
+
+    DCI_IRP_df = df.loc[:, df.columns[22:-1]]
     LE = LabelEncoder()
     df_lst = []
 
@@ -41,18 +43,20 @@ def encode_data(df, **categorical_data):
 
     df = pd.concat(df_lst, axis=1)
     df['patient_type'] = target_column
+    df.insert(0, 'ID', id_column)
     
     return df
 
 
 def process_DCI_IRP(df):
+    id_column = df['ID']
+    df.drop(['ID'], axis=1, inplace=True)
     df.replace('-', 0, inplace=True)
     df = df.astype(float)
+    df.insert(0, 'ID', id_column)
 
     return df
 
-
-    
 
 if __name__ == '__main__':
     
