@@ -31,6 +31,7 @@ def mapping_Y_label(df, target_dict):
 def encode_data(df, **categorical_data):
     target_column = df['patient_type']
     DCI_IRP_df=df.loc[:, df.columns[21:-1]]
+    id_column = df['ID']
     LE = LabelEncoder()
     df_lst = []
 
@@ -43,18 +44,29 @@ def encode_data(df, **categorical_data):
 
     df = pd.concat(df_lst, axis=1)
     df['patient_type'] = target_column
+    df.insert(0, 'ID', id_column)
     
     return df
 
 
 def process_DCI_IRP(df):
+    id_column = df['ID']
+    df.drop(['ID'], axis=1, inplace=True)
     df.replace('-', 0, inplace=True)
     df = df.astype(float)
+    df.insert(0, 'ID', id_column)
 
     return df
 
 
-    
+def one_hot_encoding(df):
+    col = ['v'+str(i+1) for i in range(10)] + ['p'+str(i+1) for i in range(10)]
+    df2 = pd.get_dummies(df, columns=col, prefix=col)
+    label = df2['patient_type']
+    df2 = df2.drop(['patient_type'], axis=1)
+    df2 = pd.concat([df2, label], axis=1)
+    return df2
+
 
 if __name__ == '__main__':
     
@@ -75,4 +87,5 @@ if __name__ == '__main__':
     df = encode_data(df, **categorical_data)
 
     df = process_DCI_IRP(df)
+    df = one_hot_encoding(df)
     output('training_data', 'training.csv', df)
