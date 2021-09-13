@@ -70,7 +70,7 @@ def output(file_path, file_name, df):
     print("[INFO] output {} successfully".format(file_name))
 
 
-def get_DCI_IRP(path_lst):
+def get_DCI_IRP(path_lst, contraction_df):
     DCI_lst = []
     IRP_lst = []
     exception_lst = ['T220351794', 'U121003125']
@@ -132,9 +132,25 @@ def get_DCI_IRP(path_lst):
         df_lst.append(IRP_df)
 
     DCI_IRP_df = pd.concat(df_lst, axis=1)
+    target = contraction_df['patient_type']
+    contraction_df.drop('patient_type', axis=1, inplace=True)
+    df = pd.concat([contraction_df, DCI_IRP_df], axis=1)
+    df['patient_type'] = target
 
-    return DCI_IRP_df
+    return df
 
+
+def get_scoring(path_lst):
+    score = ['Normal', 'Ineffective', 'Failed contraction','Premature', 'Hyper', 'Fragmented']
+    scoring_lst = []
+    for path in path_lst:
+        print(path)
+        pdf_df = read_pdf(path, guess=False, pages=1, stream=True, encoding="utf-8")[0]
+        print(pdf_df.iloc[30:, ])
+        temp = [ x for x in pdf_df.iloc[38:44, 2].tolist()]
+        # float(x.split(' ')[0])*0.01
+        scoring_lst.append(temp)
+        print(temp)
 
 if __name__ == '__main__':
     
@@ -146,18 +162,10 @@ if __name__ == '__main__':
 
 
     path_lst = glob.glob('./original_data/*/*.CSV')
-    
-    
     contraction_df = get_contraction(path_lst, if_pattern=True)
     
-    target = contraction_df['patient_type']
-    contraction_df.drop('patient_type', axis=1, inplace=True)
-
     pdf_path_lst = glob.glob('./original_data/*/*.pdf')
-    DCI_IRP_df = get_DCI_IRP(pdf_path_lst)
-
-    df = pd.concat([contraction_df, DCI_IRP_df], axis=1)
-    df['patient_type']=target
-    print(df)
+    df = get_DCI_IRP(pdf_path_lst, contraction_df)
+    #get_scoring(pdf_path_lst)
 
     output('data', 'all_patient.csv', df)

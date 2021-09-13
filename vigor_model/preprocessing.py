@@ -77,6 +77,7 @@ if __name__ == '__main__':
     df = mapping_Y_label(df, {
         '1': 'normal',
         '2': 'IEM',
+        '3': 'Absent'
     })
 
     categorical_data={
