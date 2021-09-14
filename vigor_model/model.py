@@ -26,14 +26,14 @@ def get_scaler(data):
 # define Neural Network 
 class NN(nn.Module):
     """Some Information about NN"""
-    def __init__(self, input_features):
+    def __init__(self, input_features, class_num):
         super(NN, self).__init__()
         self.block = nn.Sequential(
             nn.Linear(input_features, 150),
             nn.ReLU(),
             nn.Linear(150, 64),
             nn.ReLU(),
-            nn.Linear(64,10),
+            nn.Linear(64,class_num),
         )
         
     def forward(self, x):

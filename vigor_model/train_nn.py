@@ -54,7 +54,7 @@ def training():
 
     
     # define model 
-    model = NN(input_features=101)
+    model = NN(input_features=101, class_num=3)
 
     # optimizer & Loss function
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
