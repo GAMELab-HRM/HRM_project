@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from torchsummaryX import summary
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 def read_csv_data(path):
     df = pd.read_csv(path, encoding='big5')
@@ -16,34 +17,62 @@ def read_csv_data(path):
     label = df.iloc[:, -1].values
     return data, label 
 
+def get_scaler(data):
+    # 這個scaler預設要用所有的taining data來fit
+    scaler = MinMaxScaler()
+    scaler.fit(data)
+    return scaler 
+
 # define Neural Network 
 class NN(nn.Module):
     """Some Information about NN"""
     def __init__(self, input_features):
         super(NN, self).__init__()
-        self.mlp = nn.Sequential(
-            nn.Linear(input_features, 128),
+        self.block = nn.Sequential(
+            nn.Linear(input_features, 150),
             nn.ReLU(),
-            nn.Linear(128, 64),
+            nn.Linear(150, 64),
             nn.ReLU(),
-            nn.Linear(64,16),
-            nn.ReLU(),
-            nn.Linear(16,10),
-            nn.Softmax(dim=1)
+            nn.Linear(64,10),
         )
         
     def forward(self, x):
-        return self.mlp(x)
+        return self.block(x)
+    
 # create custom dataset
 class HRMdataset(Dataset):
     def __init__(self, path):
         self.data, self.label = read_csv_data(path)
-        
+        #scaler = get_scaler(self.data)
+        #self.transform_data = scaler.transform(self.data)
+
     def __getitem__(self, index):
+        #return self.transform_data[index], self.label[index]
         return self.data[index], self.label[index]
-    
+
     def __len__(self):
         return len(self.data)
+
+class DatasetFromSubset(Dataset):
+    def __init__(self, datas, labels, indices):
+        self.data = datas[indices]
+        self.label = labels[indices]
+
+    def __getitem__(self, index):
+        return self.data[index], self.label[index]
+
+    def __len__(self):
+        return len(self.data)
+
+def train_normalization(train_dataset):
+    scaler = MinMaxScaler()
+    scaler.fit(train_dataset.data)
+    train_dataset.data = scaler.transform(train_dataset.data)
+    return train_dataset, scaler 
+
+def test_normalization(test_dataset, train_scaler):
+    test_dataset.data = train_scaler.transform(test_dataset.data)
+    return test_dataset 
 
 def RFclassifier():
     classifier = RandomForestClassifier(n_estimators=100)
@@ -52,3 +81,5 @@ def RFclassifier():
 def SVM_1():
     classifier = SVC(C=5, cache_size=5000, max_iter=200, degree=5, gamma='auto')
     return classifier
+
+
