@@ -5,6 +5,7 @@ from os import path
 from shlex import split
 import pandas as pd
 from tabula import read_pdf
+import numpy as np
 
 
 '''
@@ -70,70 +71,244 @@ def output(file_path, file_name, df):
     print("[INFO] output {} successfully".format(file_name))
 
 
-def get_DCI_IRP(path_lst):
+def get_DCI_IRP(path_lst, contraction_df):
     DCI_lst = []
-    IRP_lst = []
-    exception_lst = ['T220351794', 'U121003125']
+    IRP02_lst = []
+    IRP08_lst = []
+    IRP40_lst = []
+
     for path in path_lst:
         print(path)
-        id = path.split("\\")[1]
-        if id in exception_lst:
-            df = read_pdf(path, guess=False, pages=1, stream=True, encoding="utf-8")[0]
-            DCI = [x.split(" ")[1] for x in df.iloc[36:46, 0].tolist()]
+        pdf_df_lst = read_pdf(path, guess=False, pages=[1, 2], stream=True, encoding="utf-8")
+        pdf_df = pd.concat(pdf_df_lst, axis=0, ignore_index=True)
 
-            df = read_pdf(path, guess=False, pages=2,stream=True, encoding="utf-8")[0]
-            if id == 'T220351794':
-                magic_num = df.iloc[4, 1]
-                temp = df.iloc[2:12, 2].tolist()
-                IRP_02 = [x.split(" ")[0] for x in temp if len(x) > 3 ]
-                IRP_02.insert(2, magic_num)
+        
+        col_num = set(pdf_df_lst[0].columns.tolist())
+        col_num.update(pdf_df_lst[1].columns.tolist())
+        
+        pdf_df.columns = ['col '+str(x) for x in range(len(col_num))]
+        pdf_df.replace(np.nan, '-', inplace=True)
 
-                temp = df.iloc[2:12, 2].tolist()
-                IRP_08 = [x.split(" ")[1] if len(x) > 3 else x for x in temp]
-                
-                temp = df.iloc[18:28, 2].tolist()
-                IRP_40 = [x.split(" ")[0] for x in temp]
-            else:
-                temp = df.iloc[2:12, 2].tolist()
-                IRP_02 = [x.split(" ")[0] for x in temp]
-                IRP_08 = [x.split(" ")[1] for x in temp]
+        try:
+            DCI_data = process_DCI_data(pdf_df, 'col 4')
+        except Exception as e:
+            try:
+                DCI_data = process_DCI_data(pdf_df, 'col 3')
+            except Exception as e:
+                DCI_data = process_DCI_data(pdf_df, 'col 0')
+        
+        DCI_lst.append(DCI_data)
 
-                temp = df.iloc[18:28, 2].tolist()
-                IRP_40 = [x.split(" ")[0] for x in temp]
+        try:
+            IRP02_data = process_IRP02_data(pdf_df, 'col 2')
+        except Exception as e:
+            IRP02_data = process_IRP02_data(pdf_df, 'col 3')
+        
+        IRP02_lst.append(IRP02_data)
 
-        elif id == 'U120483683':
-            df = read_pdf(path, guess=False, pages=1,stream=True, encoding="utf-8")[0]
-            DCI = [x.split(" ")[1] for x in df.iloc[48:58, 0].tolist()]
+        try:
+            IRP08_data = process_IRP08_data(pdf_df, 'col 3')
+        except Exception as e:
+            IRP08_data = process_IRP08_data(pdf_df, 'col 4')
+        
+        IRP08_lst.append(IRP08_data)
 
-            df = read_pdf(path, guess=False, pages=2,stream=True, encoding="utf-8")[0]
-            temp = df.iloc[2:12, 2].tolist()
-            IRP_02 = [x.split(" ")[0] for x in temp]
-            IRP_08 = [x.split(" ")[1] for x in temp]
-            
-            temp = df.iloc[18:28, 2].tolist()
-            IRP_40 = [x.split(" ")[0] for x in temp]
+        
+        pdf_df = pdf_df.iloc[50:, :]
+        pdf_df.reset_index(inplace=True, drop=True)
+        try:
+            IRP40_data = process_IRP40_data(pdf_df, 'col 3')
+        except Exception as e:
+            IRP40_data = process_IRP40_data(pdf_df, 'col 4')
 
-        else:
-            df = read_pdf(path, guess=False, pages=2, stream=True, encoding="utf-8")[0]
-            DCI = [x.split(" ")[1] for x in df.iloc[4:14, 0].tolist()]
+        IRP40_lst.append(IRP40_data)
 
-            IRP_02 = df.iloc[20:30, 2].tolist()
-            IRP_08 = df.iloc[20:30, 3].tolist()
-            IRP_40 = [x.split(" ")[0] for x in df.iloc[37:47, 3].tolist()]
-
-        DCI_lst.append(DCI)
-        IRP_lst.append([IRP_02, IRP_08, IRP_40])
 
     DCI_df = pd.DataFrame(DCI_lst, columns=['DCI_'+str(i) for i in range(1, 11)])
-    df_lst = [DCI_df]
-    IRP_times_lst = ['02', '08', '40']
-    for i in range(len(IRP_times_lst)):
-        IRP_df = pd.DataFrame([k[i] for k in IRP_lst], columns=['IRP'+IRP_times_lst[i]+'_'+str(x) for x in range(1, 11)])
-        df_lst.append(IRP_df)
+    IRP02_df = pd.DataFrame(IRP02_lst, columns=['IRP02_'+str(i) for i in range(1, 11)])
+    IRP08_df = pd.DataFrame(IRP08_lst, columns=['IRP08_'+str(i) for i in range(1, 11)])
+    IRP40_df = pd.DataFrame(IRP40_lst, columns=['IRP40_'+str(i) for i in range(1, 11)])
+    
+    df_lst = [DCI_df, IRP02_df, IRP08_df, IRP40_df]
 
     DCI_IRP_df = pd.concat(df_lst, axis=1)
+    target = contraction_df['patient_type']
+    contraction_df.drop('patient_type', axis=1, inplace=True)
+    df = pd.concat([contraction_df, DCI_IRP_df], axis=1)
+    df['patient_type'] = target
 
-    return DCI_IRP_df
+    return df
+
+
+def process_DCI_data(pdf_df, col_name):
+    ini_idx = pdf_df.loc[pdf_df[col_name].astype(str).str.contains('DCI', na=False)].index.tolist()[0]+3
+    col_idx = int(col_name.split(' ')[1])
+    DCI_data = pdf_df.iloc[ini_idx:ini_idx+10, col_idx].to_list()
+    DCI_data = [x.split(' ')[1] for x in DCI_data]
+
+    return DCI_data
+
+
+def process_IRP02_data(pdf_df, col_name):
+    ini_idx = pdf_df.loc[pdf_df[col_name].astype(str).str.contains('IRP 0.2 s', na=False)].index.tolist()[0]
+    col_idx = int(col_name.split(' ')[1])
+    stride = 0
+
+    for i in range(1, 4):
+        try:
+            temp = float(pdf_df.iloc[ini_idx+i, col_idx].split(' ')[0])
+            stride = i
+            break
+        except Exception as e:
+            pass
+    
+    ini_idx += stride
+    IRP02_data = pdf_df.iloc[ini_idx:ini_idx+10, col_idx].to_list()
+    if type(IRP02_data[0]) != float and " " in IRP02_data[0]:
+        IRP02_data = [x.split(' ')[0] for x in IRP02_data]
+
+    return IRP02_data
+
+
+def process_IRP08_data(pdf_df, col_name):
+    ini_idx = pdf_df.loc[pdf_df[col_name].astype(str).str.contains('IRP 0.8 s', na=False)].index.tolist()[0]
+    col_idx = int(col_name.split(' ')[1])
+    stride = 0
+
+    for i in range(1, 4):
+        try:
+            temp = float(pdf_df.iloc[ini_idx+i, col_idx].split(' ')[0])
+            stride = i
+            break
+        except Exception as e:
+            pass
+
+    ini_idx += stride
+    IRP08_data = pdf_df.iloc[ini_idx:ini_idx+10, col_idx].to_list()
+
+    if type(IRP08_data[0]) != float and " " in IRP08_data[0]:
+        IRP08_data = [x.split(' ')[1] for x in IRP08_data]
+
+    return IRP08_data
+
+
+def process_IRP40_data(pdf_df, col_name):
+    ini_idx = pdf_df.loc[pdf_df[col_name].astype(str).str.contains('IRP 4 s', na=False)].index.tolist()[0]
+    col_idx = int(col_name.split(' ')[1])
+    stride = 0
+    for i in range(1, 5):
+        try:
+            temp = float(pdf_df.iloc[ini_idx+i, col_idx].split(' ')[0])
+            stride = i
+            break
+        except Exception as e:
+            pass
+    ini_idx += stride
+    IRP40_data = pdf_df.iloc[ini_idx:ini_idx+10, col_idx].to_list()
+    IRP40_data = [x.split(' ')[0] for x in IRP40_data]
+
+    return IRP40_data
+
+
+def get_scoring(path_lst, contraction_df):
+    score = ['Normal', 'Ineffective', 'Failed contraction','Premature', 'Hyper', 'Fragmented']
+    score = ['scoring_' + x for x in score]
+    scoring_lst = []
+    for path in path_lst:
+        print(path)
+        pdf_df = read_pdf(path, guess=False, pages=1, stream=True, encoding="utf-8")[0]
+        pdf_df.replace(np.nan, 0, inplace=True)
+        try:
+            scoring_data = process_scoring_data(pdf_df, 'Unnamed: 1')
+        except Exception as e:
+            try:
+                scoring_data = process_scoring_data(pdf_df, 'Unnamed: 0')
+            except Exception as e:
+                scoring_data = process_scoring_data(pdf_df, 'Unnamed: 2')
+        scoring_lst.append(scoring_data)
+
+    scoring_df = pd.DataFrame(scoring_lst, columns=score)
+    target = contraction_df['patient_type']
+    contraction_df.drop('patient_type', axis=1, inplace=True)
+    df = pd.concat([contraction_df, scoring_df], axis=1)
+    df['patient_type'] = target
+
+    return df
+    
+
+def process_scoring_data(pdf_df, col_name):
+    ini_idx = pdf_df.loc[pdf_df[col_name].astype(str).str.contains('EGJ', na=False)].index.tolist()[0]-1
+    col_idx = int(col_name.split(' ')[1])+1
+    scoring_data = pdf_df.iloc[ini_idx:ini_idx+6, col_idx].to_list()
+    scoring_data = [float(x.split(' ')[0])*0.01 for x in scoring_data]
+
+    return scoring_data
+
+
+def get_DL(path_lst, contraction_df):
+    DL_lst = []
+    DL = ['DL_' + str(x) for x in range(1, 11)]
+
+    for path in path_lst:
+        print(path)
+        pdf_df_lst = read_pdf(path, guess=False, pages=[1, 2], stream=True, encoding="utf-8")
+        pdf_df = pd.concat(pdf_df_lst, axis=0, ignore_index=True)
+
+        col_num = set(pdf_df_lst[0].columns.tolist())
+        col_num.update(pdf_df_lst[1].columns.tolist())
+
+        pdf_df.columns = ['col '+str(x) for x in range(len(col_num))]
+        pdf_df.replace(np.nan, '-', inplace=True)
+        
+        pdf_df = pdf_df.iloc[:100, :]
+        pdf_df.reset_index(inplace=True, drop=True)
+
+        try:
+            DL_data = process_DL_data(pdf_df, 'col 2')
+        except Exception:
+            try:
+                DL_data = process_DL_data(pdf_df, 'col 3')
+            except Exception:
+                DL_data = process_DL_data(pdf_df, 'col 4')
+
+        DL_lst.append(DL_data)
+
+    DL_df = pd.DataFrame(DL_lst, columns=DL)
+    target = contraction_df['patient_type']
+    contraction_df.drop('patient_type', axis=1, inplace=True)
+    df = pd.concat([contraction_df, DL_df], axis=1)
+    df['patient_type'] = target
+
+    return df
+
+
+def process_DL_data(pdf_df, col_name):
+    ini_idx = pdf_df.loc[pdf_df[col_name].astype(str).str.contains('Distal Latency', na=False)].index.tolist()[-1]
+    col_idx = int(col_name.split(' ')[1])
+    stride = 1
+    ct = 0
+    for i in range(1, 4):
+        try:
+            target = pdf_df.iloc[ini_idx+i, col_idx].split(' ')[0]
+            if target.strip() == '-':
+                ct += 1
+            temp = float(target)
+            stride = i
+            break
+        except Exception as e:
+            pass
+    else:
+        if ct >= 3:
+            stride = 3
+        else:
+            raise Exception
+
+    ini_idx += stride
+    DL_data = pdf_df.iloc[ini_idx:ini_idx+10, col_idx].to_list()
+    if " " in DL_data[0]:
+        DL_data = [x.split(' ')[1] for x in DL_data]
+
+    return DL_data
 
 
 if __name__ == '__main__':
@@ -146,18 +321,11 @@ if __name__ == '__main__':
 
 
     path_lst = glob.glob('./original_data/*/*.CSV')
-    
-    
     contraction_df = get_contraction(path_lst, if_pattern=True)
     
-    target = contraction_df['patient_type']
-    contraction_df.drop('patient_type', axis=1, inplace=True)
-
     pdf_path_lst = glob.glob('./original_data/*/*.pdf')
-    DCI_IRP_df = get_DCI_IRP(pdf_path_lst)
-
-    df = pd.concat([contraction_df, DCI_IRP_df], axis=1)
-    df['patient_type']=target
-    print(df)
+    df = get_DCI_IRP(pdf_path_lst, contraction_df)
+    df = get_scoring(pdf_path_lst, df)
+    df = get_DL(pdf_path_lst, df)
 
     output('data', 'all_patient.csv', df)

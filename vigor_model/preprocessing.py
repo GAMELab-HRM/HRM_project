@@ -75,8 +75,10 @@ if __name__ == '__main__':
     # 自訂label從1開始，預設其他會被歸類為0
 
     df = mapping_Y_label(df, {
-        '1': 'normal',
-        '2': 'IEM',
+        '0': 'normal',
+        '1': 'IEM',
+        '2': 'Absent',
+        '3': 'Fragmented'
     })
 
     categorical_data={
