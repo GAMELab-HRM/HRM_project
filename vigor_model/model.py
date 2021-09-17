@@ -29,12 +29,15 @@ class NN(nn.Module):
     def __init__(self, input_features, class_num):
         super(NN, self).__init__()
         self.block = nn.Sequential(
-            nn.Linear(input_features, 150),
-            nn.ReLU(),
-            nn.Linear(150, 64),
-            nn.ReLU(),
-            nn.Linear(64,class_num),
+            nn.Linear(input_features, 110),
+            nn.LeakyReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(110, 50),
+            nn.LeakyReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(50,class_num),
         )
+        #self.dropout = nn.Dropout(0.5)
         
     def forward(self, x):
         return self.block(x)

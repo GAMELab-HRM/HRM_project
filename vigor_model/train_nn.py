@@ -22,12 +22,13 @@ torch.backends.cudnn.deterministic = True
 # hyper params 
 BATCH_SIZE = 3
 epochs = 40
-lr = 1e-3
+lr = 0.001
 class_number = 4
 metric_acc = torchmetrics.Accuracy()
 metric_valid_acc = torchmetrics.Accuracy()
 metric_acc.to("cuda")
 metric_valid_acc.to("cuda")
+
 
 def compute_accuracy2(dataset, model):
     correct = 0
@@ -102,7 +103,7 @@ def training():
 
     # define model 
     model = NN(input_features=101, class_num=class_number)
-
+    summary(model, torch.zeros(1, 101))
     # optimizer & Loss function
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss()
@@ -121,7 +122,8 @@ def training():
 
             loss = criterion(out, label.long())
             acc = metric_acc(out, label.long())
-            
+
+
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -136,26 +138,34 @@ def training():
             data = Variable(data)
             out = model(data.float())
             loss = criterion(out, label.long())
-            batch_loss = metric_valid_acc(out, label.long())
+            acc = metric_valid_acc(out, label.long())
             valid_loss+=loss.item()*data.size(0)
         
         total_train_acc = metric_acc.compute()
         total_valid_acc = metric_valid_acc.compute()
+
+
         train_acc_record.append(round(total_train_acc.cpu().item(), 4))
         valid_acc_record.append(round(total_valid_acc.cpu().item(), 4))
+
+
         metric_acc.reset()
         metric_valid_acc.reset()
-
         epoch_valid_loss = valid_loss / len(test_dataloader)
         epoch_loss = running_loss / len(train_dataloader)
-        valid_record.append(epoch_valid_loss)
-        loss_record.append(epoch_loss)
+        valid_record.append(round(epoch_valid_loss, 4))
+        loss_record.append(round(epoch_loss, 4))
         model.train()
+
 
     draw_loss(loss_record, valid_record)
     draw_acc(train_acc_record, valid_acc_record)
     print("Train Acc:\t", compute_accuracy2(train_dataset, model))
     print("Test Acc:\t", compute_accuracy2(test_dataset, model))
+    print("Train Loss: ")
+    print(loss_record)
+    print("Valid Loss:")
+    print(valid_record)
 
 if __name__ == "__main__":
     training()
