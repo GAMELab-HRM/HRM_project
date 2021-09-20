@@ -8,7 +8,7 @@ L220518569   8569-normal    wetswallow8    Intacct
 U121805941   5941-normal    werswallow9    Inatact
 
 [DCI 表格在page1]
-T220351794
+T220351794(目前無法處理，需要先刪除)
 U121003125
 U120483683
 U121927166
@@ -17,3 +17,9 @@ U121927166
 B221512134 未計算
 U121627652 無數據
 
+[patient type 標記錯誤]
+C120376526 標記為IEM，應為Absent
+U220883425 標記為IEM，應為Absent
+
+[contraction pattern 標記錯誤]
+U120592972 wet swallow4 標記為normal，應為Intact
