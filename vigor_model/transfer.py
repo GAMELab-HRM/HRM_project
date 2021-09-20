@@ -314,8 +314,8 @@ if __name__ == '__main__':
     pdf_path_lst = glob.glob('./original_data/*/*.pdf')
     df = get_DCI_IRP(pdf_path_lst, contraction_df)
     if if_DL:
-        df = get_scoring(pdf_path_lst, df)
-    if if_scoring:    
         df = get_DL(pdf_path_lst, df)
+    if if_scoring:    
+        df = get_scoring(pdf_path_lst, df)
 
     output('data', 'all_patient.csv', df)

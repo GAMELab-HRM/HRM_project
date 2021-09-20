@@ -71,9 +71,9 @@ def one_hot_encoding(df):
 if __name__ == '__main__':
     
     df = pd.read_csv('./data/all_patient.csv', encoding='big5', low_memory=False)
+    
     # 自訂label格式 -> class: label，label可以是list
     # 自訂label從1開始，預設其他會被歸類為0
-
     df = mapping_Y_label(df, {
         '0': 'normal',
         '1': 'IEM',
