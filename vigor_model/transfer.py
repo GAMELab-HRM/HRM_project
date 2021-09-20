@@ -6,16 +6,16 @@ from shlex import split
 import pandas as pd
 from tabula import read_pdf
 import numpy as np
+import argparse
 
 
-'''
 def get_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', '--times', type=int, default='3')
-    parser.add_argument('-s', '--stride', type=int, default='10')
+    parser.add_argument('-d', '--dl', action='store_true', help='add distal latency in to model')
+    parser.add_argument('-s', '--scoring', action='store_true', help='add scoring in to model')
     
     return parser
-'''
+
 
 
 def get_contraction(path_lst, if_pattern):
@@ -31,16 +31,6 @@ def get_contraction(path_lst, if_pattern):
         
         df['Contraction pattern'].fillna(0, inplace=True)
         pattern = df.loc[df['Contraction pattern'] != 0]['Contraction pattern'].tolist()[:10]
-        
-        '''
-        print(path)
-        print(df['Contraction vigor'].unique())
-        print(vigor)
-        print(df['Contraction pattern'].unique())
-        print(pattern)
-        print("--------------------------")
-        '''
-        
         
         for i in range(len(vigor)):
             vigor[i] = vigor[i].strip()
@@ -78,7 +68,7 @@ def get_DCI_IRP(path_lst, contraction_df):
     IRP40_lst = []
 
     for path in path_lst:
-        print(path)
+        print("[INFO] DCI & IRP {}".format(path))
         pdf_df_lst = read_pdf(path, guess=False, pages=[1, 2], stream=True, encoding="utf-8")
         pdf_df = pd.concat(pdf_df_lst, axis=0, ignore_index=True)
 
@@ -215,7 +205,7 @@ def get_scoring(path_lst, contraction_df):
     score = ['scoring_' + x for x in score]
     scoring_lst = []
     for path in path_lst:
-        print(path)
+        print("[INFO] scoring {}".format(path))
         pdf_df = read_pdf(path, guess=False, pages=1, stream=True, encoding="utf-8")[0]
         pdf_df.replace(np.nan, 0, inplace=True)
         try:
@@ -250,7 +240,7 @@ def get_DL(path_lst, contraction_df):
     DL = ['DL_' + str(x) for x in range(1, 11)]
 
     for path in path_lst:
-        print(path)
+        print("[INFO] DL {}".format(path))
         pdf_df_lst = read_pdf(path, guess=False, pages=[1, 2], stream=True, encoding="utf-8")
         pdf_df = pd.concat(pdf_df_lst, axis=0, ignore_index=True)
 
@@ -313,19 +303,19 @@ def process_DL_data(pdf_df, col_name):
 
 if __name__ == '__main__':
     
-    # parser = get_parser()
-    # args = parser.parse_args()
-    # times = args.times
-    # stride = args.stride
-
-
+    parser = get_parser()
+    args = parser.parse_args()
+    if_DL = args.dl
+    if_scoring = args.scoring
 
     path_lst = glob.glob('./original_data/*/*.CSV')
     contraction_df = get_contraction(path_lst, if_pattern=True)
     
     pdf_path_lst = glob.glob('./original_data/*/*.pdf')
     df = get_DCI_IRP(pdf_path_lst, contraction_df)
-    df = get_scoring(pdf_path_lst, df)
-    df = get_DL(pdf_path_lst, df)
+    if if_DL:
+        df = get_scoring(pdf_path_lst, df)
+    if if_scoring:    
+        df = get_DL(pdf_path_lst, df)
 
     output('data', 'all_patient.csv', df)
