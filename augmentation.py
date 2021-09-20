@@ -74,7 +74,7 @@ def create_data(label):
         swallow_randn = random.randint(0, len(type_list)-1)
         target_swallow_index = type_list[swallow_randn]
         print('swallow'+str(i+1)+':\t'+"|From "+fname+"\t"+"swallow"+str(target_swallow_index+1)+"\t")
-      
+        
         target_swallow = swallow_range[target_swallow_index]
         df_list.append(df.iloc[target_swallow[0]:target_swallow[1]+1])
         i+=1
