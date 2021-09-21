@@ -2,6 +2,8 @@ import pandas as pd
 import argparse
 import random
 from transfer import output
+from datetime import datetime
+import numpy as np
 
 
 def get_parser():
@@ -27,7 +29,6 @@ def score(df_data_lst):
         transfer_lst.append(temp_lst)
 
     for i in transfer_lst:
-        print(transfer_lst)
         normal = i.count('Normal')/10
         weak = i.count('Weak')/10
         failed = i.count('Failed')/10
@@ -83,6 +84,15 @@ if __name__ == '__main__':
         df_data_lst.append(temp)
 
     df_data_lst = score(df_data_lst)
-    aug_df = pd.DataFrame(df_data_lst, columns=df.columns[:-1])
+
+    for i in range(len(df_data_lst)):
+        df_data_lst[i].insert(0, str(datetime.now())+'_aug'+str(i))
+        df_data_lst[i].append(np.nan)
+
+    col_lst = list(df.columns[:-1])
+    col_lst.insert(0, 'ID')
+    col_lst.append('patient_type')
+
+    aug_df = pd.DataFrame(df_data_lst, columns=col_lst)
     
     output('data augmentation', 'augmentation.csv', aug_df)
