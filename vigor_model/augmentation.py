@@ -1,6 +1,7 @@
 import pandas as pd
 import argparse
 import random
+from transfer import output
 
 
 def get_parser():
@@ -9,6 +10,38 @@ def get_parser():
     parser.add_argument('-d', '--dl', action='store_true', required=True, help='if distal latency is in all_patient')
 
     return parser
+
+
+def score(df_data_lst):
+    transfer_lst = []
+    scoring_result = []
+    for i in df_data_lst:
+        temp_lst = []
+        vigor = i[:10]
+        pattern = i[10:20]
+        for j in range(len(vigor)):
+            if pattern[j] == 'Intact':
+                temp_lst.append(vigor[j])
+            else:
+                temp_lst.append(pattern[j])
+        transfer_lst.append(temp_lst)
+
+    for i in transfer_lst:
+        normal = i.count('Normal')/10
+        weak = i.count('Weak')/10
+        failed = i.count('Failed')/10
+        premature = i.count('Premature')/10
+        fragemented = i.count('Fragemented')/10
+
+        ineffective = weak+failed
+
+        # 0 for Hyper
+        scoring_result.append([normal, ineffective, failed, premature, 0, fragemented])
+
+    for i in range(len(df_data_lst)):
+        df_data_lst[i].extend(scoring_result[i])
+    
+    return df_data_lst
 
 
 if __name__ == '__main__':
@@ -39,8 +72,6 @@ if __name__ == '__main__':
             temp_lst.append(temp)
         patient_data_lst.append(temp_lst)
 
-    
-    print(patient_data_lst)
     df_data_lst = []
     for i in patient_data_lst:
         temp = i.pop(0)
@@ -49,6 +80,13 @@ if __name__ == '__main__':
                 idx = (j+1)*(k+1)+k
                 temp.insert(idx, i[j][k])
         df_data_lst.append(temp)
-        
-    aug_df = pd.DataFrame(df_data_lst, columns=df.columns[:-7])
-    print(aug_df)
+
+    df_data_lst = score(df_data_lst)
+
+    score_col_lst = ['Normal', 'Ineffective', 'Failed contraction', 'Premature', 'Hyper', 'Fragmented']
+    score_col_lst = ['scoring_'+x for x in score_col_lst]
+    col_lst = list(df.columns[:-7])
+    col_lst.extend(score_col_lst)
+
+    aug_df = pd.DataFrame(df_data_lst, columns=col_lst)
+    output('data augmentation', 'augmentation.csv', aug_df)
