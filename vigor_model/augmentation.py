@@ -27,16 +27,17 @@ def score(df_data_lst):
         transfer_lst.append(temp_lst)
 
     for i in transfer_lst:
+        print(transfer_lst)
         normal = i.count('Normal')/10
         weak = i.count('Weak')/10
         failed = i.count('Failed')/10
         premature = i.count('Premature')/10
-        fragemented = i.count('Fragemented')/10
+        fragmented = i.count('Fragmented')/10
 
         ineffective = weak+failed
 
         # 0 for Hyper
-        scoring_result.append([normal, ineffective, failed, premature, 0, fragemented])
+        scoring_result.append([normal, ineffective, failed, premature, 0, fragmented])
 
     for i in range(len(df_data_lst)):
         df_data_lst[i].extend(scoring_result[i])
@@ -82,11 +83,6 @@ if __name__ == '__main__':
         df_data_lst.append(temp)
 
     df_data_lst = score(df_data_lst)
-
-    score_col_lst = ['Normal', 'Ineffective', 'Failed contraction', 'Premature', 'Hyper', 'Fragmented']
-    score_col_lst = ['scoring_'+x for x in score_col_lst]
-    col_lst = list(df.columns[:-7])
-    col_lst.extend(score_col_lst)
-
-    aug_df = pd.DataFrame(df_data_lst, columns=col_lst)
+    aug_df = pd.DataFrame(df_data_lst, columns=df.columns[:-1])
+    
     output('data augmentation', 'augmentation.csv', aug_df)
