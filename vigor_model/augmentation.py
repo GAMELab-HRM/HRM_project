@@ -160,16 +160,19 @@ if __name__ == '__main__':
     
 
     df = pd.read_csv('./data/all_patient.csv', encoding='big5', low_memory=False)
-    train_df = df.loc[df['flag'] == 0]
-    train_df.reset_index(inplace=True, drop=True)
-    train_df.drop(['ID', 'flag'], axis=1, inplace=True)
-    valid_df = df.loc[df['flag'] == 1]
-    valid_df.reset_index(inplace=True, drop=True)
-    valid_df.drop(['ID', 'flag'], axis=1, inplace=True)
-    
+    temp_cols = df.columns
+    train_df = df[df['flag'] == 0].values
+    train_df = pd.DataFrame(train_df, columns=temp_cols)
+    output('data', 'train_original.csv', train_df)
+
+    valid_df = df[df['flag'] == 1]
+    valid_df = pd.DataFrame(valid_df, columns=temp_cols)
+    output('data', 'valid_original.csv', valid_df)
+
     df_lst = [train_df, valid_df]
     
     for i in range(len(df_lst)):
+        df_lst[i].drop(['ID', 'flag'], axis=1, inplace=True)
         swallow_ct = int(df_lst[i].shape[0])*10
 
         aug_idx_lst = []
@@ -191,9 +194,11 @@ if __name__ == '__main__':
 
         for j in range(len(df_data_lst)):
             df_data_lst[j].insert(0, str(datetime.now())+'_aug'+str(j))
+            df_data_lst[j].append(i)
 
         col_lst = list(df_lst[i].columns[:-1])
         col_lst.insert(0, 'ID')
+        col_lst.append('flag')
 
         aug_df = pd.DataFrame(df_data_lst, columns=col_lst)
 
@@ -214,6 +219,10 @@ if __name__ == '__main__':
             
         aug_df['patient_type'] = cc_lst
 
-
         # output augmentation.csv to data/
-        # output('data', 'augmentation.csv', aug_df)
+        if i == 0:
+            file_name = 'train_aug.csv'
+        elif i == 1:
+            file_name = 'valid_aug.csv'
+
+        output('data', file_name, aug_df)

@@ -31,7 +31,7 @@ def mapping_Y_label(df, target_dict):
 
 def encode_data(df, **categorical_data):
     target_column = df['patient_type']
-    DCI_IRP_df=df.loc[:, df.columns[21:-1]]
+    number_df = df.loc[:, df.columns[21:-1]]
     id_column = df['ID']
     LE = LabelEncoder()
     df_lst = []
@@ -41,7 +41,7 @@ def encode_data(df, **categorical_data):
         temp_df = df.loc[:, column.split(' ')].apply(lambda x : LE.transform(x))
         df_lst.append(temp_df)
 
-    df_lst.append(DCI_IRP_df)
+    df_lst.append(number_df)
 
     df = pd.concat(df_lst, axis=1)
     df['patient_type'] = target_column
@@ -64,22 +64,34 @@ def one_hot_encoding(df):
     col = ['v'+str(i+1) for i in range(10)] + ['p'+str(i+1) for i in range(10)]
     df2 = pd.get_dummies(df, columns=col, prefix=col)
     label = df2['patient_type']
-    df2 = df2.drop(['patient_type'], axis=1)
-    df2 = pd.concat([df2, label], axis=1)
+    flag = df2['flag']
+    df2 = df2.drop(['flag', 'patient_type'], axis=1)
+    df2['flag'] = flag
+    df2['patient_type'] = label
+
     return df2
 
 
 if __name__ == '__main__':
     path_lst = glob.glob('./data/*.CSV')
+    path_lst = [x for x in path_lst if 'all_patient' not in x]
+    train_df_lst = []
+    valid_df_lst = []
     df_lst = []
     file_name_lst = []
+
     for path in path_lst:
         df = pd.read_csv(path, encoding='big5', low_memory=False)
         df_lst.append(df)
-        file_name_lst.append(path.split('\\')[-1][:-4])
+        file_name = path.split('\\')[-1]
+        file_name_lst.append(file_name)
+        if 'train' in file_name:
+            train_df_lst.append(df)
+        elif 'valid' in file_name:
+            valid_df_lst.append(df)
 
-    df_lst.append(pd.concat(df_lst))
-    file_name_lst.append('concat')
+    df_lst.extend([pd.concat(train_df_lst), pd.concat(valid_df_lst)])
+    file_name_lst.extend(['train_concat.csv', 'valid_concat.csv'])
     df_dict = dict(zip(file_name_lst, df_lst))
 
     for file_name, df in df_dict.items():
@@ -101,12 +113,5 @@ if __name__ == '__main__':
 
         df = process_DCI_IRP(df)
         df = one_hot_encoding(df)
-
-        if file_name == 'all_patient':
-            file_name = 'training_original.csv'
-        elif file_name == 'augmentation':
-            file_name = 'training_augmentation.csv'
-        else:
-            file_name = 'training_concat.csv'
 
         output('training_data', file_name, df)
