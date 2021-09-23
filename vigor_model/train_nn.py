@@ -84,7 +84,7 @@ def draw_acc(train_acc, valid_acc):
 
 def training():
     # prepare dataset
-    all_dataset = HRMdataset("training_data/training-4class-from0.csv")
+    all_dataset = HRMdataset("training_data/training_concat.csv")
     train_size = int(0.67*len(all_dataset))
     test_size = len(all_dataset)-train_size
     train_dataset, test_dataset = torch.utils.data.random_split(all_dataset, [train_size, test_size], generator=torch.Generator().manual_seed(40))
@@ -102,8 +102,8 @@ def training():
     test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)    
 
     # define model 
-    model = NN(input_features=101, class_num=class_number)
-    summary(model, torch.zeros(1, 101))
+    model = NN(input_features=136, class_num=class_number)
+    summary(model, torch.zeros(1, 136))
     # optimizer & Loss function
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss()

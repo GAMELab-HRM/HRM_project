@@ -77,7 +77,6 @@ def aug_data(aug_idx_lst, if_dl, df):
                 temp.insert(idx, i[j][k])
         df_data_lst.append(temp)
 
-
     return df_data_lst
 
 
@@ -156,50 +155,65 @@ if __name__ == '__main__':
     fragmented = args.fragmented if args.fragmented else 0
 
     quantity -= absent + fragmented
+    quantity_lst = [quantity, int(quantity*0.34)]
+
+    
 
     df = pd.read_csv('./data/all_patient.csv', encoding='big5', low_memory=False)
-    df.drop('ID', axis=1, inplace=True)
-    swallow_ct = int(df.shape[0])*10
+    train_df = df.loc[df['flag'] == 0]
+    train_df.reset_index(inplace=True, drop=True)
+    train_df.drop(['ID', 'flag'], axis=1, inplace=True)
+    valid_df = df.loc[df['flag'] == 1]
+    valid_df.reset_index(inplace=True, drop=True)
+    valid_df.drop(['ID', 'flag'], axis=1, inplace=True)
     
-    aug_idx_lst = []
-    for _ in range(quantity):
-        aug_idx_lst.append(random.sample(range(swallow_ct), 10))
-
-    df_data_lst = aug_data(aug_idx_lst, if_dl, df)
-    df_data_lst = compute_percentile(score(df_data_lst), df_data_lst)
-
-    if absent > 0:
-        df_absent_lst = aug_absent_data(absent, if_dl, df)
-        df_data_lst.extend(df_absent_lst)
-
-    if fragmented > 0:
-        df_fragmented_lst = aug_fragmented_data(fragmented, if_dl, df)
-        df_data_lst.extend(df_fragmented_lst)
-
-    for i in range(len(df_data_lst)):
-        df_data_lst[i].insert(0, str(datetime.now())+'_aug'+str(i))
-
-    col_lst = list(df.columns[:-1])
-    col_lst.insert(0, 'ID')
-
-    aug_df = pd.DataFrame(df_data_lst, columns=col_lst)
-
-    # CC classification
-    cc_lst = []
-    for i in range(aug_df.shape[0]):
-        cc_lst.append(cc.cc_v3(aug_df.iloc[i]))
+    df_lst = [train_df, valid_df]
     
-    none_ct = 0
-    for i in range(len(cc_lst)):
-        if cc_lst[i]=='None':
-            none_ct+=1
-            aug_df.drop(i, inplace=True)
-            aug_df.reset_index()
+    for i in range(len(df_lst)):
+        swallow_ct = int(df_lst[i].shape[0])*10
 
-    for i in range(none_ct):
-        cc_lst.remove('None')
+        aug_idx_lst = []
+        for _ in range(quantity_lst[i]):
+            aug_idx_lst.append(random.sample(range(swallow_ct), 10))
+
+        df_data_lst = aug_data(aug_idx_lst, if_dl, df_lst[i])
+        df_data_lst = compute_percentile(score(df_data_lst), df_data_lst)
+
+        if absent > 0:
+            absent_lst = [absent, int(absent*0.34)]
+            df_absent_lst = aug_absent_data(absent_lst[i], if_dl, df_lst[i])
+            df_data_lst.extend(df_absent_lst)
+
+        if fragmented > 0:
+            fragmented_lst = [fragmented, int(fragmented*0.34)]
+            df_fragmented_lst = aug_fragmented_data(fragmented_lst[i], if_dl, df_lst[i])
+            df_data_lst.extend(df_fragmented_lst)
+
+        for j in range(len(df_data_lst)):
+            df_data_lst[j].insert(0, str(datetime.now())+'_aug'+str(j))
+
+        col_lst = list(df_lst[i].columns[:-1])
+        col_lst.insert(0, 'ID')
+
+        aug_df = pd.DataFrame(df_data_lst, columns=col_lst)
+
+        # CC classification
+        cc_lst = []
+        for j in range(aug_df.shape[0]):
+            cc_lst.append(cc.cc_v3(aug_df.iloc[j]))
         
-    aug_df['patient_type'] = cc_lst
+        none_ct = 0
+        for j in range(len(cc_lst)):
+            if cc_lst[j]=='None':
+                none_ct+=1
+                aug_df.drop(j, inplace=True)
+                aug_df.reset_index()
 
-    # output augmentation.csv to data/
-    output('data', 'augmentation.csv', aug_df)
+        for j in range(none_ct):
+            cc_lst.remove('None')
+            
+        aug_df['patient_type'] = cc_lst
+
+
+        # output augmentation.csv to data/
+        # output('data', 'augmentation.csv', aug_df)

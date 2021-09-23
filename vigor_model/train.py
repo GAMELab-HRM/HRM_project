@@ -45,7 +45,7 @@ def validation(N, df, model):
 
 if __name__=='__main__':
     model = SVM_1()
-    df = pd.read_csv('training_data/training.csv', encoding='big5', low_memory=False)
+    df = pd.read_csv('training_data/training_concat.csv', encoding='big5', low_memory=False)
     validation(3, df, model)
     
 

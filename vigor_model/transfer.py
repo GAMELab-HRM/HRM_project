@@ -7,7 +7,7 @@ import pandas as pd
 from tabula import read_pdf
 import numpy as np
 import argparse
-
+import random
 
 def get_parser():
     parser = argparse.ArgumentParser()
@@ -301,8 +301,58 @@ def process_DL_data(pdf_df, col_name):
     return DL_data
 
 
-if __name__ == '__main__':
+def split_data(df):
+    flag_lst = [0]*df.shape[0]
+    dic_lst = [
+        split_fragmented(df),
+        split_other_type(df, 'normal'),
+        split_other_type(df, 'IEM'),
+        split_other_type(df, 'Absent'),
+    ]
+
+    for i in dic_lst:
+        for j in i[1]:
+            flag_lst[j] = 1
     
+    df.insert(df.shape[1]-1, 'flag', flag_lst)
+
+    return df
+
+
+def split_fragmented(df):
+    max_fragmented_lst = df.loc[df['patient_type'] == 'Fragmented'].index.tolist()
+    flag = random.sample([0, 1], 1)[0]
+
+    other_fragmented_lst = df.loc[
+        (df['scoring_Fragmented'] > 0) & (df['patient_type'] != 'Fragmented')
+    ].index.tolist()
+
+    fragmented_dic = {
+        flag: max_fragmented_lst,
+        1-flag: other_fragmented_lst
+    }
+
+    return fragmented_dic
+
+
+def split_other_type(df, target_type):
+    temp = df.loc[
+        (df['patient_type'] == target_type) & (df['scoring_Fragmented'] == 0)
+    ].index.tolist()
+    
+    ct = int(len(temp) * 0.34)
+    idx_lst = random.sample(temp, ct)
+    other_idx_lst = list(set(temp) - set(idx_lst))
+
+    dic = {
+        0: other_idx_lst,
+        1: idx_lst
+    }
+
+    return dic
+
+
+if __name__ == '__main__':
     parser = get_parser()
     args = parser.parse_args()
     if_DL = args.dl
@@ -317,5 +367,7 @@ if __name__ == '__main__':
         df = get_DL(pdf_path_lst, df)
     if if_scoring:    
         df = get_scoring(pdf_path_lst, df)
+
+    df = split_data(df)
 
     output('data', 'all_patient.csv', df)

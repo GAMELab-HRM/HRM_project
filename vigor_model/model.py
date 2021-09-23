@@ -29,10 +29,10 @@ class NN(nn.Module):
     def __init__(self, input_features, class_num):
         super(NN, self).__init__()
         self.block = nn.Sequential(
-            nn.Linear(input_features, 110),
+            nn.Linear(input_features, 150),
             nn.LeakyReLU(),
             nn.Dropout(0.5),
-            nn.Linear(110, 50),
+            nn.Linear(150, 50),
             nn.LeakyReLU(),
             nn.Dropout(0.5),
             nn.Linear(50,class_num),
