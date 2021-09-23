@@ -3,8 +3,8 @@ import argparse
 import random
 from transfer import output
 from datetime import datetime
-import numpy as np
 from itertools import combinations
+import cc
 
 
 def get_parser():
@@ -53,7 +53,7 @@ def compute_percentile(transfer_lst, df_data_lst):
     return df_data_lst
 
 
-def aug_data(aug_idx_lst, df):
+def aug_data(aug_idx_lst, if_dl, df):
     patient_data_lst = []
     for i in aug_idx_lst:
         temp_lst = []
@@ -81,18 +81,18 @@ def aug_data(aug_idx_lst, df):
     return df_data_lst
 
 
-def aug_absent_data(quantity, df):
+def aug_absent_data(quantity, if_dl, df):
     aug_idx_lst = []
     absent_idx_lst = get_type_idx('Failed', df)
     for _ in range(quantity):
         aug_idx_lst.append(random.sample(absent_idx_lst, 10))
-    df_data_lst = aug_data(aug_idx_lst, df)
+    df_data_lst = aug_data(aug_idx_lst, if_dl, df)
     df_data_lst = compute_percentile(score(df_data_lst), df_data_lst)
 
     return df_data_lst
 
 
-def aug_fragmented_data(quantity, df):
+def aug_fragmented_data(quantity, if_dl, df):
     aug_idx_lst = []
     fragmented_idx_lst = get_type_idx(['Fragmented'], df)
     ineffective_idx_lst = get_type_idx(['Failed', 'Weak'], df)
@@ -104,7 +104,7 @@ def aug_fragmented_data(quantity, df):
         aug_idx_lst.extend(combine_fragmented_data(i, fragmented_idx_lst, ineffective_idx_lst, other_idx_lst))
     
     aug_idx_lst = list(random.sample(aug_idx_lst, quantity))
-    df_data_lst = aug_data(aug_idx_lst, df)
+    df_data_lst = aug_data(aug_idx_lst, if_dl, df)
     df_data_lst = compute_percentile(score(df_data_lst), df_data_lst)
 
     return df_data_lst
@@ -165,25 +165,41 @@ if __name__ == '__main__':
     for _ in range(quantity):
         aug_idx_lst.append(random.sample(range(swallow_ct), 10))
 
-    df_data_lst = aug_data(aug_idx_lst, df)
+    df_data_lst = aug_data(aug_idx_lst, if_dl, df)
     df_data_lst = compute_percentile(score(df_data_lst), df_data_lst)
 
     if absent > 0:
-        df_absent_lst = aug_absent_data(absent, df)
+        df_absent_lst = aug_absent_data(absent, if_dl, df)
         df_data_lst.extend(df_absent_lst)
 
     if fragmented > 0:
-        df_fragmented_lst = aug_fragmented_data(fragmented, df)
+        df_fragmented_lst = aug_fragmented_data(fragmented, if_dl, df)
         df_data_lst.extend(df_fragmented_lst)
 
     for i in range(len(df_data_lst)):
         df_data_lst[i].insert(0, str(datetime.now())+'_aug'+str(i))
-        df_data_lst[i].append(np.nan)
 
     col_lst = list(df.columns[:-1])
     col_lst.insert(0, 'ID')
-    col_lst.append('patient_type')
 
     aug_df = pd.DataFrame(df_data_lst, columns=col_lst)
+
+    # CC classification
+    cc_lst = []
+    for i in range(aug_df.shape[0]):
+        cc_lst.append(cc.cc_v3(aug_df.iloc[i]))
     
-    output('data augmentation', 'augmentation.csv', aug_df)
+    none_ct = 0
+    for i in range(len(cc_lst)):
+        if cc_lst[i]=='None':
+            none_ct+=1
+            aug_df.drop(i, inplace=True)
+            aug_df.reset_index()
+
+    for i in range(none_ct):
+        cc_lst.remove('None')
+        
+    aug_df['patient_type'] = cc_lst
+
+    # output augmentation.csv to data/
+    output('data', 'augmentation.csv', aug_df)

@@ -4,6 +4,7 @@ from sklearn import preprocessing
 from sklearn.preprocessing import LabelEncoder
 from transfer import output
 from sklearn.impute import SimpleImputer
+import glob
 
 
 def mapping(param):
@@ -69,25 +70,43 @@ def one_hot_encoding(df):
 
 
 if __name__ == '__main__':
-    
-    df = pd.read_csv('./data/all_patient.csv', encoding='big5', low_memory=False)
-    
-    # 自訂label格式 -> class: label，label可以是list
-    # 自訂label從1開始，預設其他會被歸類為0
-    df = mapping_Y_label(df, {
-        '0': 'normal',
-        '1': 'IEM',
-        '2': 'Absent',
-        '3': 'Fragmented'
-    })
+    path_lst = glob.glob('./data/*.CSV')
+    df_lst = []
+    file_name_lst = []
+    for path in path_lst:
+        df = pd.read_csv(path, encoding='big5', low_memory=False)
+        df_lst.append(df)
+        file_name_lst.append(path.split('\\')[-1][:-4])
 
-    categorical_data={
-        # 因為list不能當key，所以先做成字串，放入encode_data()之後再轉回list
-        ' '.join(['v'+ str(x) for x in range(1, 11)]): ['Failed', 'Weak', 'Normal'], 
-        ' '.join(['p'+ str(x) for x in range(1, 11)]): ['Failed', 'Fragmented', 'Premature', 'Intact', 'Normal']
-    }
-    df = encode_data(df, **categorical_data)
+    df_lst.append(pd.concat(df_lst))
+    file_name_lst.append('concat')
+    df_dict = dict(zip(file_name_lst, df_lst))
 
-    df = process_DCI_IRP(df)
-    df = one_hot_encoding(df)
-    output('training_data', 'training.csv', df)
+    for file_name, df in df_dict.items():
+        # 自訂label格式 -> class: label，label可以是list
+        # 自訂label從1開始，預設其他會被歸類為0
+        df = mapping_Y_label(df, {
+            '0': 'normal',
+            '1': 'IEM',
+            '2': 'Absent',
+            '3': 'Fragmented'
+        })
+
+        categorical_data={
+            # 因為list不能當key，所以先做成字串，放入encode_data()之後再轉回list
+            ' '.join(['v'+ str(x) for x in range(1, 11)]): ['Failed', 'Weak', 'Normal'], 
+            ' '.join(['p'+ str(x) for x in range(1, 11)]): ['Failed', 'Fragmented', 'Premature', 'Intact', 'Normal']
+        }
+        df = encode_data(df, **categorical_data)
+
+        df = process_DCI_IRP(df)
+        df = one_hot_encoding(df)
+
+        if file_name == 'all_patient':
+            file_name = 'training_original.csv'
+        elif file_name == 'augmentation':
+            file_name = 'training_augmentation.csv'
+        else:
+            file_name = 'training_concat.csv'
+
+        output('training_data', file_name, df)
