@@ -13,7 +13,7 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 def read_csv_data(path):
     df = pd.read_csv(path, encoding='big5')
-    data = df.iloc[:, 1:-1].values
+    data = df.iloc[:, 1:-2].values
     label = df.iloc[:, -1].values
     return data, label 
 

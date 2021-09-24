@@ -20,8 +20,8 @@ torch.backends.cudnn.benchmark = False
 torch.backends.cudnn.deterministic = True
 
 # hyper params 
-BATCH_SIZE = 3
-epochs = 40
+BATCH_SIZE = 6
+epochs = 100
 lr = 0.001
 class_number = 4
 metric_acc = torchmetrics.Accuracy()
@@ -84,14 +84,16 @@ def draw_acc(train_acc, valid_acc):
 
 def training():
     # prepare dataset
-    all_dataset = HRMdataset("training_data/training_concat.csv")
-    train_size = int(0.67*len(all_dataset))
-    test_size = len(all_dataset)-train_size
-    train_dataset, test_dataset = torch.utils.data.random_split(all_dataset, [train_size, test_size], generator=torch.Generator().manual_seed(40))
+    #all_dataset = HRMdataset("training_data/training_concat.csv")
+    #train_size = int(0.67*len(all_dataset))
+    #test_size = len(all_dataset)-train_size
+    #train_dataset, test_dataset = torch.utils.data.random_split(all_dataset, [train_size, test_size], generator=torch.Generator().manual_seed(40))
 
     # split train/test dataset 
-    train_dataset = DatasetFromSubset(train_dataset.dataset.data, train_dataset.dataset.label, train_dataset.indices)
-    test_dataset = DatasetFromSubset(test_dataset.dataset.data, test_dataset.dataset.label, test_dataset.indices)
+    train_dataset = HRMdataset("training_data/train_concat.csv")
+    test_dataset  = HRMdataset("training_data/valid_concat.csv")
+    #train_dataset = DatasetFromSubset(train_dataset.dataset.data, train_dataset.dataset.label, train_dataset.indices)
+    #test_dataset = DatasetFromSubset(test_dataset.dataset.data, test_dataset.dataset.label, test_dataset.indices)
     
     # dataset normalization
     train_dataset, train_scaler = train_normalization(train_dataset)
@@ -102,8 +104,9 @@ def training():
     test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)    
 
     # define model 
-    model = NN(input_features=136, class_num=class_number)
-    summary(model, torch.zeros(1, 136))
+    model = NN(input_features=56, class_num=class_number)
+    summary(model, torch.zeros(1, 56))
+    
     # optimizer & Loss function
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss()
