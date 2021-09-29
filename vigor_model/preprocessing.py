@@ -79,7 +79,7 @@ if __name__ == '__main__':
     valid_df_lst = []
     df_lst = []
     file_name_lst = []
-
+    
     for path in path_lst:
         df = pd.read_csv(path, encoding='big5', low_memory=False)
         df_lst.append(df)
