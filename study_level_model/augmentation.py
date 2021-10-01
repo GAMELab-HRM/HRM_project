@@ -159,15 +159,15 @@ if __name__ == '__main__':
 
     
 
-    df = pd.read_csv('./data/all_patient.csv', encoding='big5', low_memory=False)
+    df = pd.read_csv('./all_patient.csv', encoding='big5', low_memory=False)
     temp_cols = df.columns
     train_df = df[df['flag'] == 0].values
     train_df = pd.DataFrame(train_df, columns=temp_cols)
-    output('data', 'train_original.csv', train_df)
+    output('training_data', 'train_original.csv', train_df)
 
     valid_df = df[df['flag'] == 1]
     valid_df = pd.DataFrame(valid_df, columns=temp_cols)
-    output('data', 'valid_original.csv', valid_df)
+    output('training_data', 'valid_original.csv', valid_df)
 
     df_lst = [train_df, valid_df]
     
@@ -225,4 +225,4 @@ if __name__ == '__main__':
         elif i == 1:
             file_name = 'valid_aug.csv'
 
-        output('data', file_name, aug_df)
+        output('training_data', file_name, aug_df)

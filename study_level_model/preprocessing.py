@@ -73,8 +73,7 @@ def one_hot_encoding(df):
 
 
 if __name__ == '__main__':
-    path_lst = glob.glob('./data/*.CSV')
-    path_lst = [x for x in path_lst if 'all_patient' not in x]
+    path_lst = glob.glob('./training_data/*.CSV')
     train_df_lst = []
     valid_df_lst = []
     df_lst = []

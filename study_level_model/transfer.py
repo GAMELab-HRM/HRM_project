@@ -358,10 +358,10 @@ if __name__ == '__main__':
     if_DL = args.dl
     if_scoring = args.scoring
 
-    path_lst = glob.glob('./original_data/*/*.CSV')
+    path_lst = glob.glob('.././raw_data/*/*.CSV')
     contraction_df = get_contraction(path_lst, if_pattern=True)
     
-    pdf_path_lst = glob.glob('./original_data/*/*.pdf')
+    pdf_path_lst = glob.glob('.././raw_data/*/*.pdf')
     df = get_DCI_IRP(pdf_path_lst, contraction_df)
     if if_DL:
         df = get_DL(pdf_path_lst, df)
@@ -369,5 +369,4 @@ if __name__ == '__main__':
         df = get_scoring(pdf_path_lst, df)
 
     df = split_data(df)
-
-    output('data', 'all_patient.csv', df)
+    df.to_csv('all_patient.csv', encoding='big5', index=False)

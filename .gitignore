@@ -1,11 +1,5 @@
-data/    
-train/
-__pycache__/    
-data augmentation/
-augmentation2/
+__pycache__/  
+raw_data/  
 study_level_model/__pycache__/
-study_level_model/data/
-study_level_model/data augmentation/
-study_level_model/original_data/
 study_level_model/training_data/
-study_level_model/code_test/
+study_level_model/all_patient.csv
