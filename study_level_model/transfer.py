@@ -370,4 +370,5 @@ if __name__ == '__main__':
         df = get_scoring(pdf_path_lst, df)
 
     df = split_data(df)
-    df.to_csv('all_patient.csv', encoding='big5', index=False)
+    output('data', 'all_patient.csv', df)
+    #df.to_csv('all_patient.csv', encoding='big5', index=False)
