@@ -4,12 +4,13 @@
 
 ### 2. Study-level model
 
-
 * train/valid Loss
+* 
     ![real](./readme_image/study_level_loss.png)
 
  
 * train/valid Accuracy (**1.0 / 0.892**)
+* 
     ![1301](./readme_image/study_level_acc.png)
 
 ---
