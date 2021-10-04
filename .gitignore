@@ -2,4 +2,5 @@ __pycache__/
 raw_data/  
 study_level_model/__pycache__/
 study_level_model/training_data/
+study_level_model/data/
 study_level_model/all_patient.csv

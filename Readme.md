@@ -1,5 +1,19 @@
 ## HRM project
+### 1. Swallow-level model
 
+
+### 2. Study-level model
+
+
+* train/valid Loss
+    ![real](./readme_image/study_level_loss.png)
+
+ 
+* train/valid Accuracy (**1.0 / 0.892**)
+    ![1301](./readme_image/study_level_acc.png)
+
+---
+>請忽略以下
 ### 1. Dataset preparation
 
 > !python transfer.py
@@ -16,10 +30,10 @@
 > !python show.py
 
 * 原圖(醫院提供)
-    ![real](./image/real.bmp)
+    ![real](./readme_image/real.bmp)
 
  
 * 利用python畫出10次swallow
-    ![1301](./image/1301.png)
+    ![1301](./readme_image/1301.png)
 
 ### 3. Get 10 wet swallows values
