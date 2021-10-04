@@ -73,7 +73,7 @@ def one_hot_encoding(df):
 
 
 if __name__ == '__main__':
-    path_lst = glob.glob('./training_data/*.CSV')
+    path_lst = glob.glob('./data/*.CSV')
     train_df_lst = []
     valid_df_lst = []
     df_lst = []

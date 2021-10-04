@@ -13,7 +13,9 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 def read_csv_data(path):
     df = pd.read_csv(path, encoding='big5')
-    data = df.iloc[:, 1:-2].values
+    # 1~57 是沒有考慮contraction vigor contraction pattern的時候
+    # 因為若把contraction vigor、contraction pattern做one-hot encoding ，input dimension可能會不一樣
+    data = df.iloc[:, 1:57].values
     label = df.iloc[:, -1].values
     return data, label 
 
